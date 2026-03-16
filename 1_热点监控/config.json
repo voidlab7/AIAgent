@@ -1,0 +1,30 @@
+{
+  "keywords": [
+    "AI",
+    "ChatGPT",
+    "AIGC",
+    "人工智能",
+    "大模型",
+    "机器学习",
+    "深度学习",
+    "Python"
+  ],
+  "fetch_time": "02:00",
+  "max_notes_per_keyword": 20,
+  "hot_threshold": {
+    "AI": 300,
+    "tech": 400,
+    "lifestyle": 800,
+    "default": 500
+  },
+  "notifications": {
+    "enabled": false,
+    "type": "wechat",
+    "webhook": ""
+  },
+  "storage": {
+    "save_to_db": true,
+    "save_to_file": true,
+    "report_dir": "reports/xiaohongshu"
+  }
+}

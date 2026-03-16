@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+dist/
+*.egg-info/
+*.egg
+pip-log.txt
+
+# 数据文件（运行时产生）
+data/
+cache/
+*.db
+*.sqlite
+
+# 生成的报告（运行时产物）
+reports/
+
+# 配置文件（含密钥）
+.env
+*.local.py
+
+# 日志
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+.codebuddy/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# MCP Cookies
+.mcp/
+
+# 临时文件
+tmp/
+temp/

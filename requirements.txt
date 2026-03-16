@@ -1,0 +1,40 @@
+# 核心依赖
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+lxml>=5.3.0
+
+# 数据库
+sqlite3  # Python 内置
+
+# 定时任务
+apscheduler>=3.10.0
+
+# AI 服务
+openai>=1.0.0
+anthropic>=0.8.0
+
+# Markdown 处理
+markdown2>=2.5.0
+pygments>=2.18.0
+
+# 图片处理
+Pillow>=10.0.0
+
+# RSS 解析
+feedparser>=6.0.11
+
+# 网页正文提取
+readability-lxml>=0.8.1
+
+# 搜索引擎 API
+google-search-results>=2.4.2  # Serper
+
+# MCP 相关
+# 注意：RedNote MCP 和 wechat-publisher-mcp 通过 npm 全局安装
+# npm install -g rednote-mcp
+# npm install -g wechat-publisher-mcp
+
+# 开发工具
+pytest>=8.0.0
+black>=24.0.0
+mypy>=1.8.0
