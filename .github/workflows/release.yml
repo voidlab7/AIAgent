@@ -6,6 +6,11 @@ on:
     tags:
       - 'v*'  # 推送 v1.0.0 格式的 tag 时触发
 
+# 添加权限配置
+permissions:
+  contents: write  # 允许创建 Release 和上传文件
+  packages: write  # 允许上传 artifacts
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
