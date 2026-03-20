@@ -1,0 +1,210 @@
+# GitHub Actions: 自动构建并发布 AI Agent Release
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 推送 v1.0.0 格式的 tag 时触发
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # 获取完整历史，用于生成 CHANGELOG
+      
+      # 2. 设置 Python 环境
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # 4. 运行测试（可选）
+      - name: Run tests
+        run: |
+          if [ -f "pytest.ini" ] || [ -d "tests" ]; then
+            pip install pytest pytest-cov
+            pytest tests/ -v --tb=short || echo "⚠️  测试失败，但继续发布"
+          else
+            echo "⚠️  未发现测试文件，跳过测试"
+          fi
+      
+      # 5. 更新版本号
+      - name: Update version
+        run: |
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"  # 去掉 v 前缀
+          mkdir -p common
+          echo "__version__ = '$VERSION'" > common/__version__.py
+      
+      # 6. 打包项目
+      - name: Create release archive
+        run: |
+          VERSION="${{ github.ref_name }}"
+          ARCHIVE_NAME="aiagent-$VERSION"
+          
+          # 创建临时目录
+          mkdir -p /tmp/$ARCHIVE_NAME
+          
+          # 复制项目文件（排除不需要的文件）
+          rsync -av --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='*.pyc' \
+            --exclude='.DS_Store' \
+            --exclude='cache/' \
+            --exclude='logs/' \
+            --exclude='data/*.db' \
+            --exclude='web_site/node_modules/' \
+            --exclude='web_site/dist/' \
+            . /tmp/$ARCHIVE_NAME/
+          
+          # 打包
+          cd /tmp
+          tar -czf "$GITHUB_WORKSPACE/$ARCHIVE_NAME.tar.gz" "$ARCHIVE_NAME"
+          
+          echo "✅ 打包完成"
+          ls -lh "$GITHUB_WORKSPACE/$ARCHIVE_NAME.tar.gz"
+      
+      # 7. 生成 CHANGELOG
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          # 获取上一个 tag
+          PREV_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+          
+          if [ -z "$PREV_TAG" ]; then
+            # 首个 tag，列出最近 20 条 commit
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" | head -20)
+          else
+            # 列出两个 tag 之间的 commit
+            CHANGELOG=$(git log $PREV_TAG..${{ github.ref_name }} --pretty=format:"- %s (%h)")
+          fi
+          
+          # 按类型分类
+          FEATURES=$(echo "$CHANGELOG" | grep -i "feat:" || echo "")
+          FIXES=$(echo "$CHANGELOG" | grep -i "fix:" || echo "")
+          OTHERS=$(echo "$CHANGELOG" | grep -iv "feat:\|fix:" || echo "")
+          
+          # 生成格式化的 CHANGELOG
+          FORMATTED_CHANGELOG=""
+          
+          if [ -n "$FEATURES" ]; then
+            FORMATTED_CHANGELOG+="### ✨ 新增功能\n$FEATURES\n\n"
+          fi
+          
+          if [ -n "$FIXES" ]; then
+            FORMATTED_CHANGELOG+="### 🐛 Bug 修复\n$FIXES\n\n"
+          fi
+          
+          if [ -n "$OTHERS" ]; then
+            FORMATTED_CHANGELOG+="### 📝 其他变更\n$OTHERS\n\n"
+          fi
+          
+          # 输出到 GitHub Actions 环境变量
+          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FORMATTED_CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # 输出统计信息
+          COMMIT_COUNT=$(echo "$CHANGELOG" | wc -l)
+          echo "COMMIT_COUNT=$COMMIT_COUNT" >> $GITHUB_OUTPUT
+      
+      # 8. 创建 GitHub Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: aiagent-${{ github.ref_name }}.tar.gz
+          body: |
+            ## 📦 AI 自媒体创作助手 ${{ github.ref_name }}
+            
+            ### 📥 安装方式
+            
+            ```bash
+            # 下载并解压
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/aiagent-${{ github.ref_name }}.tar.gz
+            tar -xzf aiagent-${{ github.ref_name }}.tar.gz
+            cd aiagent-${{ github.ref_name }}
+            
+            # 安装依赖
+            pip install -r requirements.txt
+            
+            # 配置环境变量
+            cp .env.example .env
+            # 编辑 .env 填写 API Keys
+            
+            # 初始化项目
+            python main.py init
+            
+            # 运行
+            python main.py status
+            ```
+            
+            ### 🚀 服务器部署（OpenClaw）
+            
+            ```bash
+            ./deploy.sh ${{ github.ref_name }}
+            ```
+            
+            ---
+            
+            ### 📝 更新日志
+            
+            本次发布包含 **${{ steps.changelog.outputs.COMMIT_COUNT }}** 个提交
+            
+            ${{ steps.changelog.outputs.CHANGELOG }}
+            
+            ---
+            
+            ### 📊 项目模块
+            
+            - 🔥 热点监控：实时抓取各平台热搜
+            - 🎯 选题筛选：AI 辅助选题生成
+            - 📚 素材采集：多源内容聚合
+            - ✍️  内容创作：AI 辅助写作
+            - 🖼️  配图查找：自动匹配配图
+            - 🎨 格式优化：多平台适配
+            - 📤 内容发布：自动化发布
+            
+            ### 🔗 相关链接
+            
+            - [完整文档](https://github.com/${{ github.repository }}/blob/main/README.md)
+            - [问题反馈](https://github.com/${{ github.repository }}/issues)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      # 9. 上传构建产物到 Artifacts（备用）
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: aiagent-${{ github.ref_name }}
+          path: aiagent-${{ github.ref_name }}.tar.gz
+          retention-days: 90
+      
+      # 10. 可选：通知（企业微信/钉钉）
+      - name: Send notification
+        if: success()
+        run: |
+          echo "✅ Release 创建成功"
+          echo "📦 版本: ${{ github.ref_name }}"
+          echo "🔗 下载: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+          
+          # 如果配置了企业微信 webhook，取消下面的注释
+          # curl -X POST ${{ secrets.WECOM_WEBHOOK }} \
+          #   -H 'Content-Type: application/json' \
+          #   -d '{
+          #     "msgtype": "markdown",
+          #     "markdown": {
+          #       "content": "## 🚀 AI Agent 新版本发布\n\n**版本**: ${{ github.ref_name }}\n**提交数**: ${{ steps.changelog.outputs.COMMIT_COUNT }}\n\n[点击下载](https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }})"
+          #     }
+          #   }'

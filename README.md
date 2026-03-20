@@ -108,3 +108,38 @@ python -m workflows.daily_creator
 ## 已有基础
 
 当前已有 `ai_daily_fetcher` 模块（微信公众号 + 小红书热文抓取），作为**刷热搜**和**搜资料**模块的基础实现。
+
+## 🚀 版本发布与部署
+
+项目提供完整的版本发布和部署自动化工具：
+
+### 快速发版
+
+```bash
+# 一键发版（测试、打包、推送）
+./release.sh 1.0.0 "feat: 新增趣味测试分析功能"
+
+# GitHub Actions 自动构建 Release（约 2 分钟）
+```
+
+### 服务器部署
+
+```bash
+# 部署到服务器（OpenClaw）
+./deploy.sh v1.0.0
+```
+
+### 测试工具
+
+```bash
+# 测试打包流程（不推送）
+./test_build.sh 0.1.0-test
+
+# 验证打包产物
+./verify_release.sh aiagent-v0.1.0-test.tar.gz
+```
+
+**详细文档**：
+- [完整工作流](./RELEASE_WORKFLOW.md) - 详细的发布和部署流程
+- [使用指南](./RELEASE_GUIDE.md) - 快速参考和命令手册
+- [Skill 文档](./.codebuddy/skills/aiagent-release-deploy.md) - CodeBuddy 集成
