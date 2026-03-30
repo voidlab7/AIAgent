@@ -1,3 +1,6 @@
+# Node
+node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -55,4 +58,7 @@ temp/
 web_site/
 
 # 产品设计文档（敏感信息，不公开）
-产品IDEA/
+products/ideas/
+
+# 临时 HTML
+qrcode.html

@@ -1,6 +1,14 @@
 """
 小红书发布器
-集成 post-to-xhs Skill (基于 CDP 自动化)
+
+支持两种发布方式：
+1. MCP 方式（推荐）：通过 xiaohongshu-mcp 服务发布
+   - 在 CodeBuddy 中直接使用 Skill 触发
+   - 规则文件：.codebuddy/rules/xhs-publish.mdc
+   
+2. CDP 方式：通过 post-to-xhs Skill 脚本发布（需要配置 Chrome）
+   - 适合自动化脚本调用
+   - 需要 Chrome 和 post-to-xhs 脚本
 """
 import os
 import sys
@@ -264,7 +272,7 @@ class XiaohongshuPublisher(PublisherBase):
 def quick_publish(title: str, content: str, images: List[str], 
                   account: str = "default", headless: bool = True) -> Dict:
     """
-    快速发布到小红书
+    快速发布到小红书（CDP 方式）
     
     Example:
         result = quick_publish(
@@ -276,3 +284,32 @@ def quick_publish(title: str, content: str, images: List[str],
     """
     publisher = XiaohongshuPublisher(account=account)
     return publisher.publish(title, content, images, headless=headless)
+
+
+# ============================================================
+# MCP 发布方式（推荐在 CodeBuddy 中使用）
+# ============================================================
+"""
+MCP 发布使用 xiaohongshu-mcp 服务，通过 Skill 规则触发。
+
+发布流程：
+1. 检查登录：xiaohongshu.check_login_status
+2. 获取二维码（如未登录）：xiaohongshu.get_login_qrcode
+3. 发布内容：xiaohongshu.publish_content
+
+参数格式：
+{
+    "title": "标题（≤20字）",
+    "content": "正文（不含#标签）",
+    "images": ["图片路径1", "图片路径2"],
+    "tags": ["话题1", "话题2"],
+    "is_original": true,
+    "schedule_at": "2026-03-26T10:00:00+08:00"  # 可选，定时发布
+}
+
+触发方式：
+在 CodeBuddy 对话中说：「发布小红书」「发个小红书」等
+
+规则文件位置：
+.codebuddy/rules/xhs-publish.mdc
+"""

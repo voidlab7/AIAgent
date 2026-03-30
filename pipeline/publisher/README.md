@@ -79,9 +79,45 @@ python -m 7_内容发布.main --list
 - APScheduler (定时任务)
 
 ## 开发状态
-📋 待开发
+✅ 小红书发布已完成（基于 xiaohongshu-mcp）
+📋 微信公众号待开发
+📋 知乎待开发
+
+## Skill 规则
+
+小红书发布已固化为 Skill 规则：`.codebuddy/rules/xhs-publish.mdc`
+
+**触发方式**：
+- 对话中说「发布小红书」「发个小红书」「xhs publish」等
+- Agent 会自动检查登录、准备内容、调用 MCP 发布
 
 ## 注意事项
 - 微信公众号建议先用**预览模式**人工审核后再发布
-- 小红书 MCP 目前只有搜索功能，发布能力需要扩展
+- 小红书已集成 xiaohongshu-mcp，支持完整发布流程
 - 知乎暂无官方 API，可能需要 Selenium
+
+## 小红书发布说明
+
+### MCP 工具
+使用 `xiaohongshu-mcp` 服务的以下工具：
+- `check_login_status` - 检查登录状态
+- `get_login_qrcode` - 获取登录二维码
+- `delete_cookies` - 删除登录态（切换账号）
+- `publish_content` - 发布图文内容
+
+### 发布参数
+```json
+{
+  "title": "标题（≤20字）",
+  "content": "正文（不含#标签）",
+  "images": ["图片路径1", "图片路径2"],
+  "tags": ["话题1", "话题2"],
+  "is_original": true
+}
+```
+
+### 注意事项
+1. `content` 中不要包含 `#` 开头的话题标签
+2. 所有话题标签通过 `tags` 数组传递
+3. 图片使用本地绝对路径
+4. 发布前先检查登录状态

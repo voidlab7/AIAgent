@@ -1,0 +1,7 @@
+✅ Converted successfully!
+   Input:  microlab-article-001-full.md
+   Output: microlab-article-001-full-wechat.html
+
+📖 Open the HTML file in browser to preview.
+   Click "一键复制" button, then paste into WeChat editor.
+EXIT=0
