@@ -1,0 +1,281 @@
+---
+description: PawMBTI 网站打包发版 Skill。当用户需要将 PawMBTI 网站打包构建、提交到 GitHub、升级 Release 版本时使用此 Skill。触发关键词包括：打包上传、打包发版、上传到 GitHub、推送到 GitHub、升级 release、更新版本、新版本、pawmbti 发版、网站发版、前端发版、部署、回退版本。
+alwaysApply: false
+enabled: true
+updatedAt: 2026-03-25T18:00:00.000Z
+provider: 
+---
+
+# PawMBTI 网站打包发版 Skill
+
+将 PawMBTI 网站项目构建、提交到 GitHub、创建 Release 版本，并部署到线上服务器。
+
+## 触发条件
+
+当用户提到以下关键词或场景时使用此 Skill：
+- `打包上传` / `打包发版` / `发版` / `发布版本`
+- `上传到 GitHub` / `推送到 GitHub` / `push 到 GitHub`
+- `升级 release` / `更新版本` / `新版本` / `升级版本`
+- `pawmbti 发版` / `网站发版` / `前端发版`
+- `部署到服务器` / `部署到线上` / `上线`
+- `回退版本` / `回滚` / `切换版本` / `部署指定版本`
+
+## 项目配置
+
+| 配置项 | 值 |
+|--------|-----|
+| 项目路径 | `/Users/voidzhang/Documents/workspace/AIAgent/web_site/pawmbti` |
+| GitHub 仓库 | `https://github.com/voidlab7/web_site.git` |
+| GitHub 用户 | `voidlab7` |
+| 仓库名 | `web_site` |
+| 远程方式 | HTTPS（通过 credential helper 自动认证） |
+| 版本文件 | `package.json` 中的 `version` 字段 |
+| 构建命令 | `npm run build`（即 `tsc -b && vite build`） |
+| 构建产物 | `dist/` 目录 |
+| 线上访问地址 | `https://microlab.top/pawmbti/` |
+
+## 服务器部署配置
+
+| 配置项 | 值 |
+|--------|-----|
+| 服务器地址 | `microlab.top` |
+| 登录用户 | `root` |
+| root 密码 | `$SERVER_PASSWORD` |
+| sshpass 路径 | `~/bin/sshpass`（源码编译安装） |
+| 前端目录 | `/var/www/pawmbti/` |
+| 后端服务 | `/var/www/pawmbti-server/`（pm2 管理，名称 pawmbti-counter） |
+| 服务器代码目录 | `/root/projects/web_site`（用于服务器构建模式） |
+| 部署脚本 | `/root/scripts/deploy_website.sh` |
+| 更新脚本 | `/root/scripts/update_website.sh` |
+
+---
+
+## 🚀 部署方式选择
+
+支持**两种部署方式**，根据场景选择：
+
+| 方式 | 适用场景 | 优点 |
+|-----|---------|-----|
+| **方式 A：本地构建 + SCP 上传** | 正式发版（默认） | 构建产物可控，版本管理完整 |
+| **方式 B：服务器拉取 + 构建** | 快速部署/回退版本 | 支持版本切换，服务器自动构建 |
+
+---
+
+## 方式 A：本地构建 + SCP 上传（正式发版流程）
+
+> **默认发版方式**：本地构建确保产物可控，完整版本管理。
+
+### 第一步：确认发版信息
+
+```bash
+cd /Users/voidzhang/Documents/workspace/AIAgent/web_site/pawmbti
+cat package.json | grep '"version"'
+git tag --sort=-v:refname | head -5
+git status
+git log --oneline -5
+```
+
+自动推断：
+1. **版本号** — 根据当前版本和改动类型建议新版本号（feat→minor, fix→patch）
+2. **更新说明** — 从 git log 推断改动内容
+
+### 第二步：本地构建项目
+
+```bash
+cd /Users/voidzhang/Documents/workspace/AIAgent/web_site/pawmbti
+npm run build
+```
+
+验证构建成功：
+```bash
+ls -la dist/ && du -sh dist/
+```
+
+### 第三步：升级版本号
+
+使用 `replace_in_file` 工具修改 `package.json` 中的 version 字段。
+
+版本号规则：
+- **patch** (x.y.Z)：bug 修复、小调整
+- **minor** (x.Y.0)：新功能、非破坏性改动
+- **major** (X.0.0)：重大改动、破坏性变更
+
+### 第四步：提交代码
+
+```bash
+cd /Users/voidzhang/Documents/workspace/AIAgent/web_site
+git add -A
+git commit -m "<type>(pawmbti): v<版本号> <描述>"
+```
+
+Commit 类型：`feat` / `fix` / `docs` / `style` / `refactor` / `perf` / `chore`
+
+### 第五步：创建 Git Tag
+
+```bash
+git tag -a v<版本号> -m "v<版本号> - <描述>"
+```
+
+### 第六步：推送到 GitHub（需审批）
+
+```bash
+# requires_approval = true
+git push origin main --tags
+```
+
+### 第七步：创建 GitHub Release（可选）
+
+优先使用 `gh release create`：
+```bash
+gh release create v<版本号> --title "v<版本号>" --notes "<更新说明>"
+```
+
+不可用时提供手动创建 URL：
+```
+https://github.com/voidlab7/web_site/releases/new?tag=v<版本号>
+```
+
+### 第八步：部署到线上服务器
+
+#### 8.1 确保 sshpass 可用
+
+```bash
+ls ~/bin/sshpass 2>/dev/null && echo "✅ sshpass 已就绪" || echo "❌ 需要安装"
+```
+
+如果不可用，自动从源码编译安装：
+```bash
+mkdir -p ~/bin && cd /tmp
+curl -LO https://sourceforge.net/projects/sshpass/files/sshpass/1.10/sshpass-1.10.tar.gz
+tar xzf sshpass-1.10.tar.gz && cd sshpass-1.10
+./configure && make && cp sshpass ~/bin/sshpass && chmod +x ~/bin/sshpass
+```
+
+#### 8.2 上传构建产物（需审批）
+
+```bash
+# requires_approval = true
+~/bin/sshpass -p '$SERVER_PASSWORD' scp -o StrictHostKeyChecking=no -r /Users/voidzhang/Documents/workspace/AIAgent/web_site/pawmbti/dist/* root@microlab.top:/var/www/pawmbti/
+```
+
+#### 8.3 上传后端服务（如有更新）
+
+```bash
+# requires_approval = true
+~/bin/sshpass -p '$SERVER_PASSWORD' scp -o StrictHostKeyChecking=no /Users/voidzhang/Documents/workspace/AIAgent/web_site/pawmbti/server/count-server.cjs root@microlab.top:/var/www/pawmbti-server/
+```
+
+#### 8.4 写入版本信息 + 重载服务
+
+```bash
+# requires_approval = true
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "
+  echo '<版本号>' > /var/www/pawmbti/version.txt
+  echo 'v<版本号> (deployed: $(date \"+%Y-%m-%d %H:%M:%S\"))' > /var/www/pawmbti/version_info.txt
+  nginx -t && nginx -s reload
+  pm2 restart pawmbti-counter 2>/dev/null || echo 'pm2 服务未运行'
+  echo '✅ 部署完成'
+"
+```
+
+#### 8.5 验证部署
+
+```bash
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "cat /var/www/pawmbti/version_info.txt"
+curl -I https://microlab.top/pawmbti/ 2>/dev/null | head -3
+```
+
+---
+
+## 方式 B：服务器拉取 + 构建（快速部署/回退）
+
+> **适用场景**：快速部署最新代码、部署指定版本、回退到历史版本。
+
+### B1. 部署最新代码
+
+```bash
+# requires_approval = true
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "cd /root/scripts && bash update_website.sh main"
+```
+
+强制重新部署（即使版本相同）：
+```bash
+# requires_approval = true
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "cd /root/scripts && bash update_website.sh main --force"
+```
+
+### B2. 部署指定版本/Tag
+
+```bash
+# requires_approval = true
+# 将 v1.7.2 替换为目标版本号
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "cd /root/scripts && bash update_website.sh v1.7.2"
+```
+
+### B3. 回退到上一个版本
+
+先查看可用版本：
+```bash
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "cd /root/projects/web_site && git tag --sort=-v:refname | head -10"
+```
+
+然后部署指定版本（参考 B2）。
+
+### B4. 查看当前部署版本
+
+```bash
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "cat /var/www/pawmbti/version_info.txt"
+```
+
+### B5. 查看部署历史/备份
+
+```bash
+~/bin/sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "ls -lt /var/www/backups/ | head -10"
+```
+
+---
+
+## AI 执行指引
+
+### 场景判断
+
+| 用户说 | 使用方式 |
+|-------|---------|
+| "发版" / "打包上传" / "升级版本" | **方式 A**（完整发版流程） |
+| "部署" / "上线" / "更新服务器" | **方式 A**（如有未提交改动）或 **方式 B**（如已推送） |
+| "回退版本" / "部署 v1.x.x" / "切换到旧版" | **方式 B**（服务器切换版本） |
+| "快速部署" / "同步最新" | **方式 B**（服务器拉取最新） |
+
+### 执行原则
+
+1. **版本号必须升级** — 每次发版必须更新 `package.json` 版本
+2. **必须打 Tag** — 每次发版必须创建 Git Tag
+3. **push 需要审批** — `requires_approval = true`
+4. **scp/ssh 需要审批** — 所有远程服务器操作 `requires_approval = true`
+5. **sshpass 用完整路径** — 始终用 `~/bin/sshpass` 调用
+6. **构建优先** — 先 `npm run build` 确保通过再提交
+7. **版本号推断** — feat→minor, fix→patch, 重大→major
+8. **自动生成 commit message** — Conventional Commits 格式
+9. **失败处理** — gh CLI 不可用时提供手动 URL；sshpass 不可用时自动编译
+10. **记录到工作记忆** — 发版完成后更新 `.codebuddy/memory/`
+11. **完整反馈** — 告知用户版本号、GitHub Release 链接、服务器部署状态
+
+### 版本号规范
+
+```
+v<major>.<minor>.<patch>
+```
+
+- **major**：重大改动，不兼容旧版
+- **minor**：新功能，向后兼容
+- **patch**：bug 修复，小改动
+
+### 发版检查清单
+
+- [ ] 本地构建成功
+- [ ] 版本号已升级
+- [ ] 代码已提交
+- [ ] Git Tag 已创建
+- [ ] 已推送到 GitHub（含 tags）
+- [ ] 服务器已部署
+- [ ] 线上验证通过

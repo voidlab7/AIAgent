@@ -1,0 +1,405 @@
+---
+alwaysApply: true
+---
+# /retro — 每周工程回顾
+
+生成全面的工程回顾报告，分析提交历史、工作模式和代码质量指标。支持团队模式：识别每位贡献者的工作，提供具体表扬和成长建议。
+
+## 触发方式
+
+当用户说「weekly retro」「retro」「每周回顾」「what did we ship」「工程回顾」「回顾一下这周」时激活此规则。
+
+## 参数
+
+- `/retro` — 默认最近 7 天
+- `/retro 24h` — 最近 24 小时
+- `/retro 14d` — 最近 14 天
+- `/retro 30d` — 最近 30 天
+- `/retro compare` — 当前窗口 vs 上一个同等长度窗口
+- `/retro compare 14d` — 指定窗口对比
+
+## 参数验证
+
+如果参数不匹配 `数字+d/h/w` 或 `compare`（可选跟窗口），显示用法说明并停止：
+
+```
+用法: /retro [窗口 | compare]
+  /retro              — 最近 7 天（默认）
+  /retro 24h          — 最近 24 小时
+  /retro 14d          — 最近 14 天
+  /retro 30d          — 最近 30 天
+  /retro compare      — 对比本期 vs 上期
+  /retro compare 14d  — 指定窗口对比
+```
+
+## 指令
+
+解析参数确定时间窗口。默认 7 天。所有时间使用用户**本地时区**（使用系统默认，不要设置 `TZ`）。
+
+**午夜对齐窗口：** 对天（`d`）和周（`w`）单位，计算本地午夜的绝对起始日期，不使用相对字符串。例如今天是 2026-03-25，窗口 7 天：起始日期 2026-03-18。使用 `--since="2026-03-18T00:00:00"` 查询 git log。对小时（`h`）单位，使用 `--since="N hours ago"`。
+
+---
+
+### Step 1: 收集原始数据
+
+首先 fetch origin 并识别当前用户：
+```bash
+git fetch origin <default> --quiet
+git config user.name
+git config user.email
+```
+
+`git config user.name` 返回的名字是**「你」**——读这份回顾的人。其他作者是队友。
+
+**检测默认分支：**
+```bash
+gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || echo "main"
+```
+
+并行运行所有这些 git 命令（它们互相独立）：
+
+```bash
+# 1. 窗口内所有提交（时间戳、主题、哈希、作者、文件变更、插入、删除）
+git log origin/<default> --since="<window>" --format="%H|%aN|%ae|%ai|%s" --shortstat
+
+# 2. 每个提交的测试 vs 生产代码 LOC 分解
+git log origin/<default> --since="<window>" --format="COMMIT:%H|%aN" --numstat
+
+# 3. 提交时间戳（用于会话检测和小时分布）
+git log origin/<default> --since="<window>" --format="%at|%aN|%ai|%s" | sort -n
+
+# 4. 最常变更的文件（热点分析）
+git log origin/<default> --since="<window>" --format="" --name-only | grep -v '^$' | sort | uniq -c | sort -rn
+
+# 5. 从提交消息提取 PR 编号
+git log origin/<default> --since="<window>" --format="%s" | grep -oE '#[0-9]+' | sed 's/^#//' | sort -n | uniq | sed 's/^/#/'
+
+# 6. 每位作者的文件热点
+git log origin/<default> --since="<window>" --format="AUTHOR:%aN" --name-only
+
+# 7. 每位作者的提交计数
+git shortlog origin/<default> --since="<window>" -sn --no-merges
+
+# 8. TODOS.md 积压（如可用）
+cat TODOS.md 2>/dev/null || true
+
+# 9. 测试文件计数
+find . -name '*.test.*' -o -name '*.spec.*' -o -name '*_test.*' -o -name '*_spec.*' 2>/dev/null | grep -v node_modules | wc -l
+
+# 10. 窗口内回归测试提交
+git log origin/<default> --since="<window>" --oneline --grep="test(qa):" --grep="test(design):" --grep="test: coverage"
+
+# 11. 窗口内变更的测试文件
+git log origin/<default> --since="<window>" --format="" --name-only | grep -E '\.(test|spec)\.' | sort -u | wc -l
+```
+
+### Step 2: 计算指标
+
+计算并展示这些指标的汇总表：
+
+| 指标 | 值 |
+|------|-----|
+| 提交到 main | N |
+| 贡献者 | N |
+| 合并的 PR | N |
+| 总插入 | N |
+| 总删除 | N |
+| 净增 LOC | N |
+| 测试 LOC（插入） | N |
+| 测试 LOC 比率 | N% |
+| 版本范围 | vX.Y.Z → vX.Y.Z |
+| 活跃天数 | N |
+| 检测到的会话 | N |
+| 平均 LOC/会话小时 | N |
+| 测试健康 | N 总测试 · M 本期新增 · K 回归测试 |
+
+然后显示**每位作者排行榜**：
+
+```
+贡献者            提交    +/-           主要领域
+你 (名字)             32   +2400/-300   browse/
+alice                 12   +800/-150    app/services/
+bob                    3   +120/-40     tests/
+```
+
+按提交降序排列。当前用户始终排第一，标记为「你 (名字)」。
+
+**积压健康（如有 TODOS.md）：** 计算打开的 TODO 数量、P0/P1 数量、P2 数量、本期完成数量。
+
+### Step 3: 提交时间分布
+
+用本地时间显示小时柱状图：
+
+```
+小时  提交  ████████████████
+ 00:    4   ████
+ 07:    5   █████
+ ...
+```
+
+识别并指出：
+- 高峰时段
+- 空白期
+- 是双峰模式（上午/晚上）还是连续模式
+- 深夜编码集群（晚 10 点后）
+
+### Step 4: 工作会话检测
+
+使用 **45 分钟间隔** 阈值检测连续提交的会话。每个会话报告：
+- 开始/结束时间
+- 提交数量
+- 持续分钟数
+
+分类会话：
+- **深度会话**（50+ 分钟）
+- **中等会话**（20-50 分钟）
+- **微会话**（<20 分钟，通常是单提交即走）
+
+计算：
+- 总活跃编码时间
+- 平均会话长度
+- 每小时活跃时间的 LOC
+
+### Step 5: 提交类型分解
+
+按 conventional commit 前缀分类（feat/fix/refactor/test/chore/docs），百分比柱状图：
+
+```
+feat:     20  (40%)  ████████████████████
+fix:      27  (54%)  ███████████████████████████
+refactor:  2  ( 4%)  ██
+```
+
+如果 fix 比率超过 50% → 标记，说明可能存在审查缺口。
+
+### Step 6: 热点分析
+
+显示前 10 个最常变更的文件。标记：
+- 变更 5+ 次的文件（高频变更热点）
+- 热点中测试文件 vs 生产文件
+- VERSION/CHANGELOG 变更频率（版本纪律指标）
+
+### Step 7: PR 大小分布
+
+从提交 diff 估算 PR 大小并分桶：
+- **小**（<100 LOC）
+- **中**（100-500 LOC）
+- **大**（500-1500 LOC）
+- **超大**（1500+ LOC）
+
+### Step 8: 专注分数 + 本周最佳发货
+
+**专注分数：** 计算触及最多的顶层目录的提交百分比。高分 = 深度专注。低分 = 分散的上下文切换。
+
+**本周最佳发货：** 自动识别窗口内最大 LOC 的 PR：
+- PR 编号和标题
+- LOC 变更量
+- 为什么重要（从提交消息和文件推断）
+
+### Step 9: 团队成员分析
+
+对每位贡献者计算：
+
+1. **提交和 LOC** — 总提交、插入、删除、净 LOC
+2. **专注领域** — 最常触及的目录/文件（前 3）
+3. **提交类型组合** — 个人 feat/fix/refactor/test 分解
+4. **会话模式** — 何时编码（高峰时段）、会话数量
+5. **测试纪律** — 个人测试 LOC 比率
+6. **最大贡献** — 窗口内影响最大的提交或 PR
+
+**对当前用户（「你」）：** 最深入分析。包含所有个人回顾细节。
+
+**对每位队友：** 2-3 句话描述贡献和模式，然后：
+- **表扬**（1-2 个具体事项）：锚定在实际提交。不说「做得好」——说具体什么好。
+- **成长机会**（1 个具体事项）：建设性建议，不是批评。
+
+**如果是独立仓库（仅一位贡献者）：** 跳过团队分解。
+
+**AI 协作注记：** 如果有 `Co-Authored-By` AI 尾部标注，记录 AI 辅助提交百分比。
+
+### Step 10: 周对周趋势（窗口 >= 14 天时）
+
+如果时间窗口 >= 14 天，按周分桶显示趋势：
+- 每周提交（总计和每位作者）
+- 每周 LOC
+- 每周测试比率
+- 每周 fix 比率
+- 每周会话数
+
+### Step 11: 连续发货追踪
+
+从今天向前数连续有提交到 `origin/<default>` 的天数：
+
+```bash
+# 团队连续发货天数
+git log origin/<default> --format="%ad" --date=format:"%Y-%m-%d" | sort -u
+
+# 个人连续发货天数
+git log origin/<default> --author="<user_name>" --format="%ad" --date=format:"%Y-%m-%d" | sort -u
+```
+
+显示：
+- "团队发货连续天数: 47 天"
+- "你的发货连续天数: 32 天"
+
+### Step 12: 加载历史 & 对比
+
+检查之前的回顾历史：
+
+```bash
+ls -t .context/retros/*.json 2>/dev/null
+```
+
+**如果存在之前的回顾：** 加载最近一次，计算关键指标的变化量，显示 **趋势 vs 上次回顾**：
+
+```
+                    上次        现在        变化
+测试比率:           22%    →    41%         ↑19pp
+会话数:             10     →    14          ↑4
+LOC/小时:           200    →    350         ↑75%
+Fix 比率:           54%    →    30%         ↓24pp (改善中)
+提交数:             32     →    47          ↑47%
+深度会话:           3      →    5           ↑2
+```
+
+**如果没有之前的回顾：** 跳过对比，注明「首次回顾已记录——下周再运行可看趋势。」
+
+### Step 13: 保存回顾历史
+
+计算所有指标后，保存 JSON 快照到 `.context/retros/`：
+
+```bash
+mkdir -p .context/retros
+```
+
+用 `write_to_file` 保存 JSON，schema 如下：
+
+```json
+{
+  "date": "2026-03-25",
+  "window": "7d",
+  "metrics": {
+    "commits": 47,
+    "contributors": 3,
+    "prs_merged": 12,
+    "insertions": 3200,
+    "deletions": 800,
+    "net_loc": 2400,
+    "test_loc": 1300,
+    "test_ratio": 0.41,
+    "active_days": 6,
+    "sessions": 14,
+    "deep_sessions": 5,
+    "avg_session_minutes": 42,
+    "loc_per_session_hour": 350,
+    "feat_pct": 0.40,
+    "fix_pct": 0.30,
+    "peak_hour": 22,
+    "ai_assisted_commits": 32
+  },
+  "authors": {
+    "Author Name": { "commits": 32, "insertions": 2400, "deletions": 300, "test_ratio": 0.41, "top_area": "browse/" }
+  },
+  "version_range": ["1.0.0", "1.1.0"],
+  "streak_days": 47,
+  "tweetable": "Week of Mar 18: 47 commits, 3.2k LOC, 38% tests, 12 PRs, peak: 10pm | Streak: 47d"
+}
+```
+
+仅在有数据时包含可选字段：`test_health`、`backlog`。
+
+### Step 14: 撰写叙事报告
+
+输出结构：
+
+---
+
+**可推文摘要**（第一行）：
+```
+Week of Mar 18: 47 commits (3 contributors), 3.2k LOC, 38% tests, 12 PRs, peak: 10pm | Streak: 47d
+```
+
+## 工程回顾: [日期范围]
+
+### 汇总表
+（来自 Step 2）
+
+### 趋势 vs 上次回顾
+（来自 Step 12，如果有之前的回顾）
+
+### 时间 & 会话模式
+（来自 Steps 3-4）
+
+叙事解读团队模式：
+- 最高产时段及驱动因素
+- 会话是变长还是变短
+- 每天的活跃编码时间（团队汇总）
+- 团队成员是同时编码还是轮班
+
+### 发货速度
+（来自 Steps 5-7）
+
+### 代码质量信号
+- 测试 LOC 比率趋势
+- 热点分析
+- 测试健康
+
+### 专注 & 亮点
+（来自 Step 8）
+
+### 你的这周（个人深度分析）
+（来自 Step 9，仅当前用户）
+
+包含：
+- 个人提交计数、LOC、测试比率
+- 会话模式和高峰时段
+- 专注领域
+- 最大贡献
+- **做得好的**（2-3 个锚定在提交的具体事项）
+- **提升空间**（1-2 个具体可行建议）
+
+### 团队分解
+（来自 Step 9，每位队友——独立仓库则跳过）
+
+### 前 3 大团队胜利
+
+### 3 件改进事项
+
+### 下周 3 个好习惯
+
+### 周对周趋势
+（如适用，来自 Step 10）
+
+---
+
+## 对比模式
+
+当用户运行 `/retro compare`：
+
+1. 计算当前窗口指标
+2. 计算上一个同等长度窗口的指标（用 `--since` 和 `--until` 避免重叠）
+3. 并排对比表，带变化量和箭头
+4. 简述最大改善和退步
+5. 仅保存当前窗口快照
+
+## 语调
+
+- 鼓励但坦率，不讨好
+- 具体而实在——始终锚定在实际提交/代码
+- 跳过泛泛表扬（「好样的！」）——说具体什么好以及为什么
+- 将改进建议框架为升级，不是批评
+- **表扬应像 1:1 会议中实际会说的话**——具体、实至名归、真诚
+- **成长建议应像投资建议**——「这值得你花时间因为…」不是「你在这方面失败了」
+- 永远不要在队友间做负面比较
+- 总输出约 3000-4500 词
+- 数据用 markdown 表格和代码块，分析用散文
+- 所有叙事输出直接到对话——**不要写文件**（除 `.context/retros/` JSON 快照外）
+
+## 重要规则
+
+- 使用 `origin/<default>` 查询（不用本地 main）
+- 所有时间戳用用户本地时区
+- 零提交则提示，建议换更大窗口
+- LOC/小时取最近 50 的整数
+- 将合并提交视为 PR 边界
+- 首次运行无历史对比则优雅跳过

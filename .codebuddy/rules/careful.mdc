@@ -1,0 +1,58 @@
+---
+description: 破坏性命令安全护栏。当用户说「careful」「小心点」「安全模式」「safety mode」「prod mode」或「be careful」时使用。在执行 rm -rf、DROP TABLE、force-push、git reset --hard 等破坏性命令前发出警告并等待确认。
+alwaysApply: false
+enabled: true
+updatedAt: 2026-03-25T04:12:03.805Z
+provider: 
+---
+
+# /careful — 破坏性命令安全护栏
+
+安全模式现已**激活**。在执行任何终端命令前，你必须先检查命令是否匹配下方的破坏性模式。如果匹配，**必须先向用户发出警告并等待确认后才能执行**。
+
+## 触发方式
+
+当用户说「小心点」「careful」「safety mode」「安全模式」「prod mode」「careful mode」或「be careful」时激活此规则。
+
+## 核心行为
+
+**铁律：发现破坏性命令 → 先警告 → 等待用户确认 → 才执行。**
+
+CodeBuddy 没有 PreToolUse hooks，因此这是一条**自律规则**。你作为 AI 助手，必须在每次调用终端命令前自行检查。
+
+## 受保护的命令模式
+
+| 模式 | 示例 | 风险 |
+|------|------|------|
+| `rm -rf` / `rm -r` / `rm --recursive` | `rm -rf /var/data` | 递归删除 |
+| `DROP TABLE` / `DROP DATABASE` | `DROP TABLE users;` | 数据丢失 |
+| `TRUNCATE` | `TRUNCATE orders;` | 数据丢失 |
+| `git push --force` / `-f` | `git push -f origin main` | 历史改写 |
+| `git reset --hard` | `git reset --hard HEAD~3` | 未提交工作丢失 |
+| `git checkout .` / `git restore .` | `git checkout .` | 未提交工作丢失 |
+| `kubectl delete` | `kubectl delete pod` | 生产环境影响 |
+| `docker rm -f` / `docker system prune` | `docker system prune -a` | 容器/镜像丢失 |
+| `terraform destroy` | `terraform destroy` | 基础设施销毁 |
+
+## 安全例外
+
+以下目标允许不警告直接执行：
+- `rm -rf node_modules` / `.next` / `dist` / `__pycache__` / `.cache` / `build` / `.turbo` / `coverage`
+
+## 检查流程
+
+1. 提取命令内容
+2. 匹配破坏性模式（SQL 关键字大小写不敏感）
+3. 检查安全例外（rm -rf 构建产物）
+4. 如匹配 → 输出警告 → 等待用户确认
+5. 如不匹配 → 正常执行
+
+警告格式：
+```
+⚠️ [careful] 检测到破坏性命令
+命令: {命令内容}
+风险: {风险描述}
+是否继续执行？
+```
+
+多命令管道/序列需检查每段子命令。

@@ -1,0 +1,166 @@
+---
+description: "仅报告的 QA 测试。系统化测试 Web 应用并产出带健康分数、截图和复现步骤的结构化报告 — 但永远不修复任何东西。当用户说「只报告 bug」「qa 仅报告」「测试但不修复」「qa-only」或只想要 bug 报告不想改代码时使用。完整测试-修复-验证循环用 /qa。"
+alwaysApply: false
+enabled: true
+---
+
+# /qa-only: 仅报告的 QA 测试
+
+你是一个 QA 工程师。像真实用户一样测试 Web 应用 — 点击所有东西，填写每个表单，检查每个状态。产出带证据的结构化报告。**永远不要修复任何东西。**
+
+## 浏览器工具
+
+在 CodeBuddy 中，使用 `chrome-devtools` MCP 工具进行浏览器操作：
+
+| 操作 | MCP 工具 |
+|------|---------|
+| 导航 | `navigate_page` |
+| 页面快照 | `take_snapshot` |
+| 截图 | `take_screenshot` |
+| 点击 | `click` |
+| 填写 | `fill` |
+| 执行 JS | `evaluate_script` |
+| 控制台消息 | `list_console_messages` |
+| 网络请求 | `list_network_requests` |
+| 调整视口 | `resize_page` |
+
+---
+
+## Setup
+
+**解析用户请求的参数：**
+
+| 参数 | 默认值 | 示例 |
+|------|-------|------|
+| 目标 URL | (自动检测或必需) | `https://myapp.com`, `http://localhost:3000` |
+| 模式 | full | `--quick`, `--regression baseline.json` |
+| 输出目录 | `docs/qa-reports/` | |
+| 范围 | 全应用 (或 diff 范围) | `关注账单页面` |
+| 认证 | 无 | `登录 user@example.com` |
+
+**如果没给 URL 且在功能分支上：** 自动进入 **diff-aware 模式**。
+
+**创建输出目录：**
+
+```bash
+REPORT_DIR="docs/qa-reports"
+mkdir -p "$REPORT_DIR/screenshots"
+```
+
+---
+
+## 模式
+
+### Diff-aware（功能分支无 URL 时自动）
+
+1. 分析分支 diff 理解变更内容
+2. 从变更文件识别受影响页面/路由
+3. 检测运行中的应用（尝试常见本地端口）
+4. 测试每个受影响页面/路由
+5. 与提交信息交叉引用理解意图
+
+### Full（提供 URL 时默认）
+系统性探索。访问每个可达页面。
+
+### Quick（`--quick`）
+30 秒冒烟测试。访问主页 + 5 个主导航目标。
+
+### Regression（`--regression <baseline>`）
+运行 Full 模式，然后加载先前基线对比。
+
+---
+
+## 工作流
+
+### Phase 1: 初始化
+- 创建输出目录
+- 启动计时器
+
+### Phase 2: 认证（如需要）
+- 使用 `navigate_page` + `fill` + `click` 完成登录
+- 遇到 CAPTCHA 告诉用户手动完成
+
+### Phase 3: 定位
+
+获取应用地图：
+1. `navigate_page` 到目标 URL
+2. `take_screenshot` 保存初始截图
+3. `take_snapshot` 获取页面结构和导航链接
+4. `list_console_messages` 检查是否有错误
+
+检测框架（记入报告元数据）。
+
+### Phase 4: 探索
+
+系统性访问页面。每个页面执行：
+
+1. `navigate_page` 到页面 URL
+2. `take_screenshot` 截图
+3. `take_snapshot` 获取元素结构
+4. `list_console_messages` 检查控制台
+
+**每页探索清单：**
+1. **视觉扫描** — 查看截图中的布局问题
+2. **交互元素** — 点击按钮、链接、控件
+3. **表单** — 填写并提交，测试边界情况
+4. **导航** — 检查所有进出路径
+5. **状态** — 空、加载、错误、溢出
+6. **控制台** — 交互后新 JS 错误？
+7. **响应式** — 使用 `resize_page` 检查移动端
+
+### Phase 5: 记录
+
+发现问题**立即记录** — 不要批量处理。
+
+**交互 Bug：** 操作前截图 → 操作 → 结果截图 → 复现步骤
+**静态 Bug：** 截图 → 描述问题
+
+### Phase 6: 总结
+
+1. 计算健康分数
+2. 写 Top 3 需要修复的问题
+3. 写控制台健康摘要
+4. 保存基线 JSON（用于未来回归对比）
+
+---
+
+## 健康分数
+
+| 类别 | 权重 |
+|------|------|
+| Console | 15% |
+| Links | 10% |
+| Visual | 10% |
+| Functional | 20% |
+| UX | 15% |
+| Performance | 10% |
+| Content | 5% |
+| Accessibility | 15% |
+
+---
+
+## 输出
+
+写报告到 `docs/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
+
+```
+docs/qa-reports/
+├── qa-report-{domain}-{YYYY-MM-DD}.md    # 结构化报告
+├── screenshots/
+│   ├── initial.png
+│   ├── issue-001-step-1.png
+│   ├── issue-001-result.png
+│   └── ...
+└── baseline.json                          # 用于回归模式
+```
+
+---
+
+## 重要规则（qa-only 特有）
+
+1. **永远不要修复 Bug。** 只发现和记录。不要阅读源码，不要编辑文件，不要在报告中建议修复方案。你的工作是报告什么坏了，不是修复它。使用 `/qa` 进行测试-修复-验证循环。
+2. **复现是一切。** 每个问题至少一张截图。
+3. **像用户一样测试。** 使用真实数据，走完完整工作流。
+4. **深度优于广度。** 5-10 个有证据的问题 > 20 个模糊描述。
+5. **永远不拒绝使用浏览器。** 即使 diff 看起来没有 UI 变更 — 总是打开浏览器测试。
+6. **未检测到测试框架？** 在报告摘要中包含："未检测到测试框架。运行 `/qa` 以引导创建并启用回归测试生成。"

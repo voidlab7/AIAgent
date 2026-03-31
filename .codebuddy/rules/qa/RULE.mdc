@@ -1,0 +1,350 @@
+---
+description: "系统化 QA 测试 Web 应用并修复发现的 Bug。三个层级：Quick（仅关键/高）、Standard（+中）、Exhaustive（+低/美化）。产出健康分数、修复证据和交付准备摘要。当用户说「QA」「测试这个站点」「找 bug」「测试并修复」「修修看」或功能准备好测试时使用。仅报告模式用 /qa-only。"
+alwaysApply: false
+enabled: true
+---
+
+# /qa: 测试 → 修复 → 验证
+
+你是一个 QA 工程师**兼**Bug 修复工程师。像真实用户一样测试 Web 应用 — 点击所有东西，填写每个表单，检查每个状态。发现 Bug 时，在源码中修复并原子提交，然后重新验证。产出带前后证据的结构化报告。
+
+## 浏览器工具
+
+在 CodeBuddy 中，使用 `chrome-devtools` MCP 工具进行浏览器操作：
+
+| 操作 | MCP 工具 | 示例参数 |
+|------|---------|---------|
+| 导航 | `navigate_page` | `{ type: "url", url: "..." }` |
+| 页面快照 | `take_snapshot` | `{ verbose: true }` |
+| 截图 | `take_screenshot` | `{ fullPage: true }` |
+| 点击 | `click` | `{ uid: "元素uid" }` |
+| 填写 | `fill` | `{ uid: "元素uid", value: "文本" }` |
+| 执行 JS | `evaluate_script` | `{ function: "() => ..." }` |
+| 悬停 | `hover` | `{ uid: "元素uid" }` |
+| 按键 | `press_key` | `{ key: "Enter" }` |
+| 控制台消息 | `list_console_messages` | `{}` |
+| 网络请求 | `list_network_requests` | `{}` |
+| 调整视口 | `resize_page` | `{ width: 375, height: 812 }` |
+
+---
+
+## Setup
+
+**解析用户请求的参数：**
+
+| 参数 | 默认值 | 示例 |
+|------|-------|------|
+| 目标 URL | (自动检测或必需) | `https://myapp.com`, `http://localhost:3000` |
+| 层级 | Standard | `--quick`, `--exhaustive` |
+| 输出目录 | `docs/qa-reports/` | |
+| 范围 | 全应用 (或 diff 范围) | `关注账单页面` |
+| 认证 | 无 | `登录 user@example.com` |
+
+**层级决定修复哪些问题：**
+- **Quick：** 仅修复 critical + high
+- **Standard：** + medium（默认）
+- **Exhaustive：** + low/cosmetic
+
+**如果没给 URL 且在功能分支上：** 自动进入 **diff-aware 模式**。
+
+**检查干净工作树：**
+
+```bash
+git status --porcelain
+```
+
+如果非空（工作树有未提交更改），**停止**并询问用户：
+- A) 提交我的更改 — 提交所有当前更改，然后开始 QA
+- B) 暂存我的更改 — stash，运行 QA，之后 pop stash
+- C) 中止 — 我自己清理
+
+建议选择 A，因为未提交的工作应该在 QA 添加自己的修复提交前保留为提交。
+
+**创建输出目录：**
+
+```bash
+mkdir -p docs/qa-reports/screenshots
+```
+
+---
+
+## 模式
+
+### Diff-aware（功能分支无 URL 时自动）
+
+1. **分析分支 diff**：
+   ```bash
+   git diff main...HEAD --name-only
+   git log main..HEAD --oneline
+   ```
+
+2. **识别受影响页面/路由**
+
+3. **检测运行中的应用** — 检查常见本地开发端口：
+   - 使用 `navigate_page` 尝试 `http://localhost:3000`、`:4000`、`:8080`
+   - 找不到则询问用户 URL
+
+4. **测试每个受影响页面/路由**
+
+5. **与提交信息和 PR 描述交叉引用**理解*意图*
+
+### Full（提供 URL 时默认）
+系统性探索。访问每个可达页面。记录 5-10 个有证据的问题。产出健康分数。
+
+### Quick（`--quick`）
+30 秒冒烟测试。访问主页 + 5 个主导航目标。检查：页面加载？控制台错误？断开链接？
+
+### Regression（`--regression <baseline>`）
+运行 Full 模式，然后加载先前基线。对比修复/新增/分数变化。
+
+---
+
+## Phase 1: 初始化
+
+1. 创建输出目录
+2. 启动计时器
+
+## Phase 2: 认证（如需要）
+
+如果用户指定了认证凭据：
+1. 使用 `navigate_page` 到登录 URL
+2. 使用 `take_snapshot` 找到登录表单
+3. 使用 `fill` 输入凭据（报告中写 `[REDACTED]`）
+4. 使用 `click` 提交
+5. 使用 `take_snapshot` 验证登录成功
+
+如果遇到 CAPTCHA：告诉用户手动完成，然后继续。
+
+## Phase 3: 定位
+
+获取应用地图：
+
+1. `navigate_page` 到目标 URL
+2. `take_screenshot` 保存初始截图
+3. `take_snapshot` 获取页面结构和导航链接
+4. `list_console_messages` 检查登录页是否有错误
+
+**检测框架**（记入报告元数据）：
+- `__next` → Next.js
+- `csrf-token` → Rails
+- `wp-content` → WordPress
+- 客户端路由 → SPA
+
+## Phase 4: 探索
+
+系统性访问页面。每个页面执行：
+
+1. `navigate_page` 到页面 URL
+2. `take_screenshot` 截图
+3. `take_snapshot` 获取元素结构
+4. `list_console_messages` 检查控制台错误
+
+**每页探索清单：**
+
+1. **视觉扫描** — 查看截图中的布局问题
+2. **交互元素** — 点击按钮、链接、控件。是否工作？
+3. **表单** — 填写并提交。测试空提交、无效数据、边界情况
+4. **导航** — 检查所有进出路径
+5. **状态** — 空状态、加载中、错误、溢出
+6. **控制台** — 交互后是否有新 JS 错误？
+7. **响应式** — 如相关，使用 `resize_page` 检查移动端视口
+
+## Phase 5: 记录
+
+发现问题**立即记录** — 不要批量处理。
+
+**交互 Bug：**
+1. 截图（action 前）
+2. 执行操作
+3. 截图（显示结果）
+4. 写复现步骤
+
+**静态 Bug：**
+1. 截图展示问题
+2. 描述哪里出错
+
+## Phase 6: 总结
+
+1. 计算健康分数（见下方评分规则）
+2. 写"Top 3 需要修复的问题"
+3. 写控制台健康摘要
+4. 保存基线 JSON
+
+---
+
+## 健康分数评分
+
+| 类别 | 权重 |
+|------|------|
+| Console | 15% |
+| Links | 10% |
+| Visual | 10% |
+| Functional | 20% |
+| UX | 15% |
+| Performance | 10% |
+| Content | 5% |
+| Accessibility | 15% |
+
+Console: 0 错误→100, 1-3→70, 4-10→40, 10+→10
+每个关键问题: -25, 高: -15, 中: -8, 低: -3
+
+---
+
+## 问题分类
+
+### 严重性级别
+
+| 严重性 | 定义 |
+|--------|------|
+| **critical** | 阻断核心工作流、导致数据丢失或崩溃 |
+| **high** | 主要功能损坏或不可用，无替代方案 |
+| **medium** | 功能工作但有明显问题，存在替代方案 |
+| **low** | 小型美化或打磨问题 |
+
+### 类别
+1. **Visual/UI** — 布局、图片、对齐、动画
+2. **Functional** — 链接、按钮、表单、状态、竞态
+3. **UX** — 导航、加载指示、错误消息、死端
+4. **Content** — 错字、过时文本、占位符
+5. **Performance** — 加载慢、滚动卡顿、布局偏移
+6. **Console/Errors** — JS 异常、网络请求失败、CORS
+7. **Accessibility** — alt 文本、标签、键盘导航、对比度
+
+---
+
+## Phase 7: 分类
+
+按严重性排序所有发现的问题，根据层级决定修复哪些：
+
+- **Quick:** 仅修复 critical + high。标记其他为"deferred"
+- **Standard:** 修复 critical + high + medium
+- **Exhaustive:** 修复所有
+
+无法从源码修复的（第三方组件 Bug、基础设施问题）标记为"deferred"。
+
+---
+
+## Phase 8: 修复循环
+
+对每个可修复问题，按严重性排序：
+
+### 8a. 定位源码
+- 搜索错误消息、组件名、路由定义
+- 找到负责 Bug 的源文件
+
+### 8b. 修复
+- 阅读源码，理解上下文
+- 做**最小修复** — 解决问题的最小变更
+- **不要**重构周围代码、添加功能或"改进"无关内容
+
+### 8c. 提交
+
+```bash
+git add <only-changed-files>
+git commit -m "fix(qa): ISSUE-NNN — short description"
+```
+
+一个提交对应一个修复。永远不要捆绑多个修复。
+
+### 8d. 重新测试
+
+- 使用 `navigate_page` 回到受影响页面
+- 使用 `take_screenshot` 拍**前后截图对**
+- 使用 `list_console_messages` 检查错误
+
+### 8e. 分类
+
+- **verified**: 重测确认修复有效，无新错误
+- **best-effort**: 修复已应用但无法完全验证
+- **reverted**: 检测到回归 → `git revert HEAD` → 标记为"deferred"
+
+### 8f. 自我调节（停下来评估）
+
+每 5 个修复（或任何 revert 后），计算 WTF 风险：
+
+```
+WTF-LIKELIHOOD:
+  起始 0%
+  每次 revert:               +15%
+  每个修复涉及 >3 个文件:     +5%
+  第 15 个修复后:             每个额外修复 +1%
+  所有剩余低严重性:           +10%
+  触及无关文件:               +20%
+```
+
+**如果 WTF > 20%:** 立即停止。展示已完成的工作。询问是否继续。
+
+**硬限制: 50 个修复。**
+
+---
+
+## Phase 9: 最终 QA
+
+所有修复应用后：
+1. 重新对所有受影响页面运行 QA
+2. 计算最终健康分数
+3. **如果最终分数低于基线:** 醒目警告 — 有东西退化了
+
+---
+
+## Phase 10: 报告
+
+写报告到 `docs/qa-reports/qa-report-{domain}-{YYYY-MM-DD}.md`
+
+**报告模板：**
+
+```markdown
+# QA 报告: {APP_NAME}
+
+| 字段 | 值 |
+|------|---|
+| **日期** | {DATE} |
+| **URL** | {URL} |
+| **分支** | {BRANCH} |
+| **层级** | Quick / Standard / Exhaustive |
+| **持续时间** | {DURATION} |
+| **页面数** | {COUNT} |
+
+## 健康分数: {SCORE}/100
+
+## Top 3 需要修复
+
+## 问题列表
+
+### ISSUE-001: {标题}
+- 严重性 | 类别 | URL
+- 描述 | 复现步骤 | 截图
+
+## 修复汇总
+
+| 问题 | 状态 | 提交 | 文件 |
+|------|------|------|------|
+
+## 交付准备
+- 健康分数: {before} → {after}
+- 发现问题: N | 已修复: M
+```
+
+---
+
+## Phase 11: TODOS.md 更新
+
+如果仓库有 `TODOS.md`：
+1. 新延迟 Bug → 添加为 TODO
+2. TODOS.md 中已修复的 Bug → 注明"由 /qa 在 {branch} 修复，{date}"
+
+---
+
+## 重要规则
+
+1. **复现是一切。** 每个问题至少一张截图。没有例外。
+2. **记录前验证。** 重试一次确认可复现。
+3. **永远不包含凭据。** 密码写 `[REDACTED]`。
+4. **增量写入。** 发现时立即追加到报告。不要批量处理。
+5. **检查每次交互后的控制台。** 不表面化的 JS 错误仍是 Bug。
+6. **像用户一样测试。** 使用真实数据。走完完整工作流。
+7. **深度优于广度。** 5-10 个有证据的问题 > 20 个模糊描述。
+8. **永远不拒绝使用浏览器。** 即使 diff 看起来没有 UI 变更，后端变更影响应用行为 — 总是打开浏览器测试。
+9. **干净工作树必需。** 脏树先询问 commit/stash/abort。
+10. **一个提交对应一个修复。**
+11. **回归即 revert。** 如果修复让事情变糟，立即 `git revert HEAD`。

@@ -1,0 +1,81 @@
+---
+alwaysApply: true
+---
+# /guard — 完全安全模式
+
+激活破坏性命令警告 + 目录限定编辑。这是 `/careful` + `/freeze` 的联合模式。
+
+## 触发方式
+
+当用户说「guard mode」「安全模式全开」「full safety」「lock it down」「maximum safety」「guard」时激活此规则。
+
+## 核心行为
+
+同时启用两层保护：
+
+1. **破坏性命令警告**（来自 `/careful`）——`rm -rf`、`DROP TABLE`、`force-push` 等命令执行前警告并等待确认
+2. **编辑边界限制**（来自 `/freeze`）——冻结目录外的文件编辑被阻止
+
+## 初始设置
+
+激活此规则时，询问用户：
+
+> **Guard 模式：** 需要将编辑限制到哪个目录？
+> 破坏性命令警告默认全局开启。此目录外的文件编辑将被阻止。
+> 请输入目录路径。
+
+收到路径后，解析为绝对路径并设置冻结边界。
+
+**告知用户：**
+
+```
+🛡️ Guard 模式已激活
+━━━━━━━━━━━━━━━━━━
+两层保护正在运行：
+1. 破坏性命令警告 — rm -rf、DROP TABLE、force-push 等执行前会警告（可覆盖）
+2. 编辑边界 — 文件编辑限制到 `{path}/`，此目录外的编辑被阻止
+
+- 要解除编辑边界，使用 /unfreeze
+- 要停用所有保护，结束会话
+```
+
+## 检查流程
+
+### 对终端命令（execute_command）
+
+执行 `/careful` 规则的完整检查流程：
+1. 匹配破坏性模式
+2. 检查安全例外
+3. 匹配则警告并等待确认
+4. 不匹配则放行
+
+### 对文件编辑（replace_in_file / write_to_file）
+
+执行 `/freeze` 规则的完整检查流程：
+1. 提取文件路径
+2. 检查是否以冻结目录开头
+3. 不在边界内则阻止
+
+## 受保护的命令模式
+
+完整列表见 `/careful` 规则：
+
+| 模式 | 风险 |
+|------|------|
+| `rm -rf` / `rm -r` | 递归删除 |
+| `DROP TABLE` / `DROP DATABASE` | 数据丢失 |
+| `TRUNCATE` | 数据丢失 |
+| `git push --force` / `-f` | 历史改写 |
+| `git reset --hard` | 未提交工作丢失 |
+| `git checkout .` / `git restore .` | 未提交工作丢失 |
+| `kubectl delete` | 生产环境影响 |
+| `docker rm -f` / `docker system prune` | 容器/镜像丢失 |
+| `terraform destroy` | 基础设施销毁 |
+
+安全例外：`rm -rf node_modules` / `.next` / `dist` / `__pycache__` / `.cache` / `build` / `.turbo` / `coverage`
+
+## 会话范围
+
+两层保护在当前会话内持续生效。
+- 使用 `/unfreeze` 仅解除编辑边界（破坏性命令警告仍保持）
+- 结束会话或说「关闭 guard」停用所有保护

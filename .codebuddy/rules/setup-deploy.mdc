@@ -1,0 +1,23 @@
+---
+description: 配置部署设置。当用户说「setup deploy」「配置部署」「configure deployment」「set up land-and-deploy」「how do I deploy」「add deploy config」时使用。检测部署平台、生产 URL、健康检查端点，配置持久化到项目文档。
+alwaysApply: false
+enabled: true
+updatedAt: 2026-03-25T04:12:03.785Z
+provider: 
+---
+
+# /setup-deploy — 配置部署设置
+
+检测部署平台（Fly.io、Render、Vercel、Netlify、Heroku、GitHub Actions、自定义），配置生产 URL、健康检查、部署状态命令。
+
+## 6 步工作流
+1. 检查现有配置
+2. 检测平台（fly.toml, render.yaml, vercel.json, netlify.toml 等）
+3. 平台特定配置引导
+4. 写入配置到项目文档
+5. 验证配置可用
+6. 总结
+
+配置后 /land-and-deploy 自动使用这些设置。
+
+重要规则：不暴露密钥、确认后再写入、幂等可重跑。

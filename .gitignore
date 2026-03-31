@@ -37,8 +37,10 @@ logs/
 # IDE
 .vscode/
 .idea/
-.codebuddy/
 *.swp
+
+# CodeBuddy — memory contains personal daily logs, not for public
+.codebuddy/memory/
 *.swo
 *~
 

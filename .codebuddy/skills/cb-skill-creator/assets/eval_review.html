@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill 触发评估集审查</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5; color: #333; padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #1a1a1a; }
+        .subtitle { color: #666; margin-bottom: 1.5rem; font-size: 0.9rem; }
+        .skill-info {
+            background: #e8f0fe; border-radius: 8px; padding: 1rem;
+            margin-bottom: 1.5rem; border-left: 4px solid #4285f4;
+        }
+        .skill-info strong { color: #1a73e8; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th { background: #1a73e8; color: #fff; padding: 0.75rem 1rem; text-align: left; font-weight: 500; }
+        td { padding: 0.6rem 1rem; border-bottom: 1px solid #eee; vertical-align: middle; }
+        tr:hover { background: #f8f9fa; }
+        .query-input {
+            width: 100%; border: 1px solid #ddd; border-radius: 4px;
+            padding: 0.4rem 0.6rem; font-size: 0.9rem; resize: vertical;
+            min-height: 2.5rem; font-family: inherit;
+        }
+        .query-input:focus { border-color: #4285f4; outline: none; box-shadow: 0 0 0 2px rgba(66,133,244,0.2); }
+        .toggle-btn {
+            padding: 0.3rem 0.8rem; border-radius: 20px; border: none;
+            cursor: pointer; font-size: 0.8rem; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active { background: #34a853; color: #fff; }
+        .toggle-btn.inactive { background: #ea4335; color: #fff; }
+        .delete-btn {
+            background: none; border: none; cursor: pointer;
+            color: #999; font-size: 1.2rem; padding: 0.2rem 0.5rem;
+        }
+        .delete-btn:hover { color: #ea4335; }
+        .actions {
+            display: flex; gap: 0.8rem; margin-top: 1.5rem;
+            justify-content: flex-end; align-items: center;
+        }
+        .btn {
+            padding: 0.6rem 1.5rem; border-radius: 6px; border: none;
+            cursor: pointer; font-size: 0.9rem; font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #1a73e8; color: #fff; }
+        .btn-primary:hover { background: #1557b0; }
+        .btn-secondary { background: #fff; color: #333; border: 1px solid #ddd; }
+        .btn-secondary:hover { background: #f1f1f1; }
+        .count {
+            font-size: 0.85rem; color: #666;
+            display: flex; gap: 1rem;
+        }
+        .count span { padding: 0.2rem 0.6rem; border-radius: 4px; }
+        .count .trigger { background: #e6f4ea; color: #137333; }
+        .count .no-trigger { background: #fce8e6; color: #c5221f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Skill 触发评估集审查</h1>
+        <p class="subtitle">编辑查询、调整触发设置，然后导出评估集</p>
+
+        <div class="skill-info">
+            <strong>Skill:</strong> <span id="skillName">__SKILL_NAME_PLACEHOLDER__</span><br>
+            <strong>描述:</strong> <span id="skillDesc">__SKILL_DESCRIPTION_PLACEHOLDER__</span>
+        </div>
+
+        <div class="count" id="countDisplay"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:5%">#</th>
+                    <th style="width:65%">查询 (Query)</th>
+                    <th style="width:15%">应触发</th>
+                    <th style="width:8%">操作</th>
+                </tr>
+            </thead>
+            <tbody id="evalTable"></tbody>
+        </table>
+
+        <div class="actions">
+            <button class="btn btn-secondary" onclick="addQuery()">+ 添加查询</button>
+            <button class="btn btn-primary" onclick="exportEvalSet()">📦 导出评估集</button>
+        </div>
+    </div>
+
+    <script>
+        let evalData = __EVAL_DATA_PLACEHOLDER__;
+
+        function render() {
+            const tbody = document.getElementById('evalTable');
+            tbody.innerHTML = '';
+
+            let triggerCount = 0, noTriggerCount = 0;
+
+            evalData.forEach((item, idx) => {
+                if (item.should_trigger) triggerCount++; else noTriggerCount++;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td><textarea class="query-input" data-idx="${idx}" oninput="updateQuery(${idx}, this.value)">${item.query}</textarea></td>
+                    <td style="text-align:center">
+                        <button class="toggle-btn ${item.should_trigger ? 'active' : 'inactive'}"
+                                onclick="toggleTrigger(${idx})">
+                            ${item.should_trigger ? '✓ 是' : '✗ 否'}
+                        </button>
+                    </td>
+                    <td style="text-align:center">
+                        <button class="delete-btn" onclick="deleteQuery(${idx})" title="删除">×</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('countDisplay').innerHTML = `
+                <span class="trigger">应触发: ${triggerCount}</span>
+                <span class="no-trigger">不应触发: ${noTriggerCount}</span>
+                <span>总计: ${evalData.length}</span>
+            `;
+        }
+
+        function updateQuery(idx, value) { evalData[idx].query = value; }
+        function toggleTrigger(idx) { evalData[idx].should_trigger = !evalData[idx].should_trigger; render(); }
+        function deleteQuery(idx) { evalData.splice(idx, 1); render(); }
+
+        function addQuery() {
+            evalData.push({ query: '', should_trigger: true });
+            render();
+            // 聚焦到新行
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('.query-input');
+                inputs[inputs.length - 1].focus();
+            }, 50);
+        }
+
+        function exportEvalSet() {
+            // 过滤空查询
+            const filtered = evalData.filter(item => item.query.trim() !== '');
+            const blob = new Blob([JSON.stringify(filtered, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'eval_set.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 评估审查</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+.header { background: linear-gradient(135deg, #1a73e8, #174ea6); color: #fff; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { font-size: 1.4rem; font-weight: 600; }
+.header .info { font-size: 0.85rem; opacity: 0.85; }
+.tabs { display: flex; background: #fff; border-bottom: 2px solid #e8eaed; padding: 0 2rem; }
+.tab { padding: 0.8rem 1.5rem; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 500; color: #5f6368; transition: all 0.2s; }
+.tab:hover { color: #1a73e8; background: #f8f9fa; }
+.tab.active { color: #1a73e8; border-bottom-color: #1a73e8; }
+.content { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+.eval-card { background: #fff; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.eval-card h3 { color: #1a73e8; margin-bottom: 0.5rem; font-size: 1.1rem; }
+.prompt-box { background: #e8f0fe; padding: 1rem 1.2rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #4285f4; font-size: 0.95rem; line-height: 1.5; }
+.output-section { margin: 1rem 0; }
+.output-section h4 { color: #5f6368; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.config-badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+.config-badge.with_skill { background: #e6f4ea; color: #137333; }
+.config-badge.without_skill { background: #fce8e6; color: #c5221f; }
+.config-badge.old_skill { background: #fef7e0; color: #b06000; }
+.output-content { background: #1e1e1e; color: #d4d4d4; padding: 1rem 1.2rem; border-radius: 8px; overflow: auto; max-height: 400px; font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5; }
+.grading { margin: 0.5rem 0; }
+.grading-item { padding: 0.35rem 0; display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.9rem; }
+.grading-item .icon { flex-shrink: 0; }
+.pass { color: #137333; } .fail { color: #c5221f; }
+.evidence { color: #5f6368; font-size: 0.8rem; margin-left: 1.5rem; margin-top: 0.15rem; }
+.feedback-section { margin-top: 1.5rem; }
+.feedback-section h4 { margin-bottom: 0.5rem; }
+.feedback-box { width: 100%; min-height: 80px; border: 1px solid #dadce0; border-radius: 8px; padding: 0.8rem 1rem; font-family: inherit; font-size: 0.9rem; resize: vertical; transition: border-color 0.2s; }
+.feedback-box:focus { border-color: #4285f4; outline: none; box-shadow: 0 0 0 2px rgba(66,133,244,0.15); }
+.nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.nav-btn { padding: 0.5rem 1.2rem; border: 1px solid #dadce0; background: #fff; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.2s; }
+.nav-btn:hover:not(:disabled) { background: #f1f3f4; border-color: #bdc1c6; }
+.nav-btn:disabled { opacity: 0.4; cursor: default; }
+.nav-info { font-size: 0.9rem; color: #5f6368; }
+.submit-row { text-align: center; margin-top: 2rem; padding-bottom: 2rem; }
+.submit-btn { padding: 0.7rem 2.5rem; background: #1a73e8; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: background 0.2s; }
+.submit-btn:hover { background: #1557b0; }
+.collapsible { cursor: pointer; user-select: none; padding: 0.5rem 0; color: #1a73e8; font-size: 0.9rem; font-weight: 500; }
+.collapsible::before { content: '▶ '; font-size: 0.75rem; }
+.collapsible.open::before { content: '▼ '; }
+.collapse-content { display: none; padding: 0.5rem 0 0.5rem 0.5rem; }
+.collapse-content.show { display: block; }
+.benchmark-section { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.benchmark-section h3 { margin-bottom: 1rem; }
+.bm-table { width: 100%; border-collapse: collapse; }
+.bm-table th, .bm-table td { padding: 0.6rem 1rem; text-align: left; border-bottom: 1px solid #e8eaed; }
+.bm-table th { background: #f8f9fa; font-weight: 500; color: #5f6368; font-size: 0.85rem; }
+.bm-table td { font-size: 0.9rem; }
+.delta-positive { color: #137333; font-weight: 500; }
+.delta-negative { color: #c5221f; font-weight: 500; }
+.notes-list { list-style: none; margin-top: 1rem; }
+.notes-list li { padding: 0.4rem 0 0.4rem 1.2rem; position: relative; font-size: 0.9rem; color: #5f6368; }
+.notes-list li::before { content: '•'; position: absolute; left: 0; color: #1a73e8; font-weight: bold; }
+#outputs-view, #benchmark-view { display: none; }
+#outputs-view.active, #benchmark-view.active { display: block; }
+.keyboard-hint { position: fixed; bottom: 1rem; right: 1rem; background: rgba(0,0,0,0.7); color: #fff; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; opacity: 0.6; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <h1 id="headerTitle">📊 Skill 评估审查</h1>
+        <div class="info" id="headerInfo"></div>
+    </div>
+</div>
+
+<div class="tabs">
+    <div class="tab active" onclick="switchTab('outputs')">📄 Outputs</div>
+    <div class="tab" onclick="switchTab('benchmark')">📊 Benchmark</div>
+</div>
+
+<div class="content">
+    <div id="outputs-view" class="active"></div>
+    <div id="benchmark-view"></div>
+</div>
+
+<div class="keyboard-hint">← → 翻页导航</div>
+
+<script>
+const DATA = {/*__EMBEDDED_DATA__*/};
+let currentEvalIdx = 0;
+const feedbacks = {};
+
+function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('outputs-view').classList.remove('active');
+    document.getElementById('benchmark-view').classList.remove('active');
+    if (tab === 'outputs') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('outputs-view').classList.add('active');
+    } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('benchmark-view').classList.add('active');
+    }
+}
+
+function renderHeader() {
+    document.getElementById('headerTitle').textContent = `📊 ${DATA.skill_name} — 评估审查`;
+    document.getElementById('headerInfo').textContent = `生成于 ${new Date(DATA.generated_at).toLocaleString('zh-CN')}`;
+}
+
+function renderOutputs() {
+    const container = document.getElementById('outputs-view');
+    const evals = DATA.evals;
+    if (!evals || !evals.length) { container.innerHTML = '<div class="eval-card"><p>没有评估结果</p></div>'; return; }
+
+    const ev = evals[currentEvalIdx];
+    let html = `
+        <div class="nav">
+            <button class="nav-btn" onclick="navigate(-1)" ${currentEvalIdx === 0 ? 'disabled' : ''}>← 上一个</button>
+            <span class="nav-info">${currentEvalIdx + 1} / ${evals.length} — ${esc(ev.eval_name)}</span>
+            <button class="nav-btn" onclick="navigate(1)" ${currentEvalIdx === evals.length - 1 ? 'disabled' : ''}>下一个 →</button>
+        </div>
+        <div class="eval-card">
+            <h3>📝 Prompt</h3>
+            <div class="prompt-box">${esc(ev.prompt)}</div>
+    `;
+
+    // Render each configuration
+    for (const [config, run] of Object.entries(ev.runs || {})) {
+        const badgeClass = config.includes('with') ? 'with_skill' : config.includes('without') ? 'without_skill' : 'old_skill';
+        html += `<div class="output-section">
+            <h4><span class="config-badge ${badgeClass}">${config}</span> 输出</h4>`;
+
+        for (const output of (run.outputs || [])) {
+            html += `<p style="font-size:0.85rem;color:#5f6368;margin:0.3rem 0"><strong>${esc(output.name)}</strong> (${fmtSize(output.size)})</p>
+                <div class="output-content">${esc(output.content)}</div>`;
+        }
+
+        if (run.grading) {
+            const gr = run.grading;
+            const prText = gr.summary?.pass_rate != null ? `${(gr.summary.pass_rate * 100).toFixed(0)}% 通过` : '';
+            html += `<div class="collapsible" onclick="toggleCollapse(this)">📋 评分结果 ${prText ? '(' + prText + ')' : ''}</div>
+                <div class="collapse-content"><div class="grading">`;
+            for (const exp of (gr.expectations || [])) {
+                const cls = exp.passed ? 'pass' : 'fail';
+                const icon = exp.passed ? '✅' : '❌';
+                html += `<div class="grading-item"><span class="icon">${icon}</span> <span class="${cls}">${esc(exp.text)}</span></div>`;
+                if (exp.evidence) html += `<div class="evidence">${esc(exp.evidence)}</div>`;
+            }
+            html += `</div></div>`;
+        }
+        html += `</div>`;
+    }
+
+    // Previous iteration
+    const prevEvals = DATA.previous_evals || [];
+    const prevEval = prevEvals.find(e => e.eval_id === ev.eval_id || e.eval_name === ev.eval_name);
+    if (prevEval) {
+        html += `<div class="collapsible" onclick="toggleCollapse(this)">📂 上一迭代输出</div><div class="collapse-content">`;
+        for (const [config, run] of Object.entries(prevEval.runs || {})) {
+            for (const output of (run.outputs || [])) {
+                html += `<div class="output-content" style="max-height:200px;margin-bottom:0.5rem">${esc(output.content)}</div>`;
+            }
+        }
+        if (prevEval.previous_feedback) {
+            for (const [k, v] of Object.entries(prevEval.previous_feedback)) {
+                if (v) html += `<p style="margin-top:0.5rem"><strong>上轮反馈:</strong> ${esc(v)}</p>`;
+            }
+        }
+        html += `</div>`;
+    }
+
+    // Feedback
+    const runId = `eval-${ev.eval_id}-with_skill`;
+    html += `<div class="feedback-section">
+        <h4>💬 反馈</h4>
+        <textarea class="feedback-box" data-run-id="${runId}"
+            oninput="saveFeedback('${runId}', this.value)"
+            placeholder="输入你的反馈（空表示没问题）...">${feedbacks[runId] || ''}</textarea>
+    </div></div>`;
+
+    if (currentEvalIdx === evals.length - 1) {
+        html += `<div class="submit-row">
+            <button class="submit-btn" onclick="submitReviews()">📤 提交所有反馈</button>
+        </div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+function renderBenchmark() {
+    const container = document.getElementById('benchmark-view');
+    const bm = DATA.benchmark;
+    if (!bm) { container.innerHTML = '<div class="benchmark-section"><p>没有基准测试数据</p></div>'; return; }
+
+    let html = `<div class="benchmark-section"><h3>📊 配置对比</h3><table class="bm-table">
+        <tr><th>配置</th><th>通过率 (均值±标准差)</th><th>时间 (均值±标准差)</th></tr>`;
+
+    const summary = bm.run_summary || {};
+    for (const [config, stats] of Object.entries(summary)) {
+        if (config === 'delta') continue;
+        const pr = stats.pass_rate || {};
+        const ts = stats.time_seconds || {};
+        html += `<tr><td><span class="config-badge ${config}">${config}</span></td>
+            <td>${(pr.mean * 100).toFixed(1)}% ± ${(pr.stddev * 100).toFixed(1)}%</td>
+            <td>${ts.mean?.toFixed(1) || 'N/A'}s ± ${ts.stddev?.toFixed(1) || '0'}s</td></tr>`;
+    }
+    html += `</table>`;
+
+    const delta = summary.delta || {};
+    if (delta.pass_rate) {
+        const val = parseFloat(delta.pass_rate);
+        const cls = val >= 0 ? 'delta-positive' : 'delta-negative';
+        html += `<p style="margin-top:1rem;font-size:0.9rem"><strong>Delta:</strong> 通过率 <span class="${cls}">${delta.pass_rate}</span>, 时间 ${delta.time_seconds || 'N/A'}s</p>`;
+    }
+
+    // Per-eval breakdown
+    const runs = bm.runs || [];
+    if (runs.length) {
+        html += `<h3 style="margin-top:1.5rem">📋 逐项结果</h3><table class="bm-table">
+            <tr><th>评估</th><th>配置</th><th>通过率</th><th>时间</th></tr>`;
+        for (const run of runs) {
+            const r = run.result || {};
+            html += `<tr><td>${esc(run.eval_name || '')}</td>
+                <td><span class="config-badge ${run.configuration}">${run.configuration}</span></td>
+                <td>${r.pass_rate != null ? (r.pass_rate * 100).toFixed(0) + '%' : 'N/A'} (${r.passed || 0}/${r.total || 0})</td>
+                <td>${r.time_seconds ? r.time_seconds.toFixed(1) + 's' : 'N/A'}</td></tr>`;
+        }
+        html += `</table>`;
+    }
+
+    // Notes
+    if (bm.notes?.length) {
+        html += `<h3 style="margin-top:1.5rem">📝 分析备注</h3><ul class="notes-list">`;
+        for (const note of bm.notes) html += `<li>${esc(note)}</li>`;
+        html += `</ul>`;
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+function navigate(delta) {
+    currentEvalIdx = Math.max(0, Math.min(DATA.evals.length - 1, currentEvalIdx + delta));
+    renderOutputs();
+    window.scrollTo(0, 0);
+}
+
+function saveFeedback(runId, value) { feedbacks[runId] = value; }
+
+function toggleCollapse(el) {
+    el.classList.toggle('open');
+    el.nextElementSibling.classList.toggle('show');
+}
+
+function submitReviews() {
+    const reviews = Object.entries(feedbacks).map(([runId, feedback]) => ({
+        run_id: runId, feedback, timestamp: new Date().toISOString(),
+    }));
+    const data = { reviews, status: 'complete' };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+    if (DATA.is_static) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'feedback.json'; a.click();
+        URL.revokeObjectURL(url);
+        alert('✅ 反馈已下载为 feedback.json');
+    } else {
+        fetch('/save-feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        }).then(r => { if (r.ok) alert('✅ 反馈已保存！'); else alert('❌ 保存失败'); });
+    }
+}
+
+function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function fmtSize(bytes) {
+    if (!bytes) return '0B';
+    if (bytes < 1024) return bytes + 'B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + 'KB';
+    return (bytes / 1048576).toFixed(1) + 'MB';
+}
+
+document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowLeft') navigate(-1);
+    if (e.key === 'ArrowRight') navigate(1);
+});
+
+renderHeader();
+renderOutputs();
+renderBenchmark();
+</script>
+</body>
+</html>

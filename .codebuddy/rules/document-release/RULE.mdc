@@ -1,0 +1,217 @@
+---
+description: "发布后文档更新。读取所有项目文档，交叉引用 diff，更新 README/ARCHITECTURE/CONTRIBUTING 匹配已发布内容，润色 CHANGELOG，清理 TODOS，可选版本号变更。当用户说「更新文档」「同步文档」「发布后文档」时使用。发布 PR 合并或代码发布后主动建议。"
+ruleType: requested
+---
+
+# /document-release — 发布后文档更新
+
+你正在运行 `/document-release` 工作流。在 `/ship`（代码已提交，PR 已存在或即将存在）**之后**但 PR 合并**之前**运行。你的工作：确保项目中每个文档文件都准确、最新，用友好的面向用户的声音编写。
+
+大部分自动化。直接做明显的事实更新。仅在有风险或主观决策时停止并询问。
+
+## 停止规则
+
+**只停止：**
+- 有风险/可疑的文档更改（叙事、哲学、安全、删除、大型重写）
+- VERSION 变更决定（如果尚未变更）
+- 新 TODOS 项目
+- 跨文档的叙事性矛盾
+
+**永不停止：**
+- diff 明确的事实更正
+- 向表格/列表添加项目
+- 更新路径、计数、版本号
+- 修复过期交叉引用
+- CHANGELOG 声音润色（微调措辞）
+- 标记 TODOS 完成
+- 跨文档事实不一致（如版本号不匹配）
+
+**永不做：**
+- 覆盖、替换或重新生成 CHANGELOG 条目 — 仅润色措辞
+- 不询问就变更 VERSION
+- 使用 Write 工具写 CHANGELOG.md — 始终用 Edit 精确匹配
+
+---
+
+## Step 0: 检测基础分支
+
+1. `gh pr view --json baseRefName -q .baseRefName`
+2. 回退：`gh repo view --json defaultBranchRef -q .defaultBranchRef.name`
+3. 都失败则用 `main`。
+
+---
+
+## Step 1: 预检 & Diff 分析
+
+1. 如果在基础分支上，**中止**。
+
+2. 收集变更上下文：
+```bash
+git diff <base>...HEAD --stat
+git log <base>..HEAD --oneline
+git diff <base>...HEAD --name-only
+```
+
+3. 发现仓库中所有文档文件：
+```bash
+find . -maxdepth 2 -name "*.md" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.codebuddy/*" | sort
+```
+
+4. 分类变更：新功能、行为变更、移除功能、基础设施。
+
+5. 输出总结："Analyzing N files changed across M commits. Found K documentation files to review."
+
+---
+
+## Step 2: 逐文件文档审计
+
+读取每个文档文件，交叉引用 diff。使用通用启发式：
+
+**README.md：**
+- 是否描述了 diff 中所有可见的功能？
+- 安装/设置说明是否与变更一致？
+- 示例、演示、用法描述是否仍然有效？
+
+**ARCHITECTURE.md：**
+- ASCII 图表和组件描述是否匹配当前代码？
+- 保守 — 仅更新 diff 明确矛盾的内容。
+
+**CONTRIBUTING.md — 新贡献者冒烟测试：**
+- 以全新贡献者身份走一遍设置说明
+- 列出的命令是否准确？每步是否会成功？
+
+**项目指令文件（CLAUDE.md 等）：**
+- 项目结构部分是否匹配实际文件树？
+- 列出的命令和脚本是否准确？
+
+**其他 .md 文件：**
+- 读取文件，确定用途和受众
+- 交叉引用 diff 检查是否矛盾
+
+分类每个所需更新为：
+- **Auto-update** — diff 明确的事实更正
+- **Ask user** — 叙事变更、部分删除、安全模型变更、大型重写
+
+---
+
+## Step 3: 应用自动更新
+
+使用 Edit 工具直接做所有清晰的事实更新。
+
+每个修改的文件输出一行总结，描述**具体更改了什么** — 不是 "Updated README.md" 而是 "README.md: added /new-skill to skills table, updated skill count from 9 to 10."
+
+**永不自动更新：**
+- README 介绍或项目定位
+- ARCHITECTURE 哲学或设计理由
+- 安全模型描述
+- 不要从任何文档中删除整个部分
+
+---
+
+## Step 4: 询问有风险/可疑的更改
+
+对每个有风险的更新询问用户：
+- 上下文：项目名、分支、哪个文档、审查内容
+- 具体的文档决策
+- RECOMMENDATION: Choose [X] because [reason]
+- 选项包括 C) 跳过 — 保持原样
+
+---
+
+## Step 5: CHANGELOG 声音润色
+
+**关键 — 永不覆盖 CHANGELOG 条目。**
+
+此步骤润色声音。不重写、替换或重新生成内容。
+
+**规则：**
+1. 先读完整个 CHANGELOG.md。
+2. 仅修改现有条目中的措辞。永不删除、重排或替换条目。
+3. 永不从头重新生成条目。
+4. 如果条目看起来错误或不完整，询问用户 — 不要静默修复。
+
+**如果 CHANGELOG 在此分支上未修改：** 跳过此步。
+
+**如果修改了：** 审查声音：
+- **卖点测试：** 用户读每个条目会想"不错，我想试试"吗？
+- 以用户**能做什么**开头 — 不是实现细节
+- "You can now..." 不是 "Refactored the..."
+- 标记并重写读起来像提交消息的条目
+- 内部/贡献者更改放在 "### For contributors" 子部分
+
+---
+
+## Step 6: 跨文档一致性 & 可发现性检查
+
+1. README 的功能列表是否匹配项目指令文件描述？
+2. ARCHITECTURE 的组件列表是否匹配 CONTRIBUTING 的项目结构？
+3. CHANGELOG 最新版本是否匹配 VERSION 文件？
+4. **可发现性：** 每个文档文件是否可从 README.md 到达？如果 ARCHITECTURE.md 存在但 README 未链接它，标记。
+5. 标记文档间矛盾。自动修复事实不一致（如版本号不匹配）。叙事矛盾询问用户。
+
+---
+
+## Step 7: TODOS.md 清理
+
+如果 TODOS.md 不存在，跳过。
+
+1. **未标记的完成项：** 交叉引用 diff，保守标记。
+2. **需要更新描述的项：** 引用了已大幅更改的文件/组件。询问用户。
+3. **新的延迟工作：** 检查 diff 中的 `TODO`、`FIXME`、`HACK`、`XXX` 注释。询问是否捕获到 TODOS.md。
+
+---
+
+## Step 8: VERSION 变更问题
+
+**关键 — 永不不询问就变更 VERSION。**
+
+1. VERSION 不存在 → 跳过。
+2. 检查 VERSION 是否在此分支上已修改：`git diff <base>...HEAD -- VERSION`
+3. **未变更：** 询问用户：A) Bump PATCH  B) Bump MINOR  C) 跳过
+4. **已变更：** 检查是否覆盖了分支上所有变更的完整范围。如果有未覆盖的重大变更，询问。
+
+---
+
+## Step 9: 提交 & 输出
+
+**空检查：** 如果没有文档被修改，输出 "All documentation is up to date." 并退出。
+
+**提交：**
+1. 按名称暂存修改的文档文件（永不 `git add -A`）。
+2. 提交：`git commit -m "docs: update project documentation for vX.Y.Z.W"`
+3. 推送：`git push`
+
+**PR body 更新（如果 PR 存在）：**
+
+```bash
+gh pr view --json body -q .body > /tmp/pr-body-$$.md
+# 追加或替换 ## Documentation 部分
+gh pr edit --body-file /tmp/pr-body-$$.md
+rm -f /tmp/pr-body-$$.md
+```
+
+如果 `gh pr view` 失败：跳过并提示。
+
+**结构化文档健康总结：**
+
+```
+Documentation health:
+  README.md       [Updated] (added X to table, updated count)
+  ARCHITECTURE.md [Current] (no changes needed)
+  CONTRIBUTING.md [Updated] (fixed setup command)
+  CHANGELOG.md    [Voice polished] (2 entries reworded)
+  TODOS.md        [Updated] (3 items marked complete)
+  VERSION         [Already bumped] (v1.2.3.0)
+```
+
+---
+
+## 重要规则
+
+- **先读后编辑。** 修改前始终读取文件完整内容。
+- **永不覆盖 CHANGELOG。** 仅润色措辞。
+- **永不静默变更 VERSION。** 始终询问。
+- **明确说明更改了什么。** 每次编辑有一行总结。
+- **通用启发式，非项目特定。** 审计检查适用于任何仓库。
+- **可发现性重要。** 每个文档文件应从 README 可达。
+- **声音：友好、面向用户、不晦涩。**

@@ -1,0 +1,410 @@
+---
+description: "Ship 一键发布工作流。检测基础分支、运行测试、审查 diff、版本号、CHANGELOG、提交、推送、创建 PR。当用户说「ship」「发布」「推到 main」「创建 PR」「合并并推送」或代码准备好时使用。"
+ruleType: requested
+---
+
+# /ship — 全自动发布工作流
+
+你是一个**发布工程师**，正在执行 `/ship` 工作流。这是一个**非交互式、全自动**工作流。不要在任何步骤询问确认。用户说了 `/ship` 就意味着 DO IT。一路执行到底，最后输出 PR URL。
+
+## 角色定义
+
+你是一位经验丰富的发布工程师，擅长：
+- 检测并合并基础分支
+- 运行测试套件并分类失败
+- 审查 diff 发现结构性问题
+- 自动版本号管理（4 位格式：MAJOR.MINOR.PATCH.MICRO）
+- 生成 CHANGELOG 条目
+- 创建可 bisect 的提交历史
+- 创建规范的 PR
+
+## 停止规则
+
+**只在以下情况停止：**
+- 在基础分支上（中止）
+- 无法自动解决的合并冲突（停止，展示冲突）
+- 本分支测试失败（预存失败会分类处理，不自动阻塞）
+- 预合并审查发现需要用户判断的 ASK 项
+- 需要 MINOR 或 MAJOR 版本号变更（询问）
+- TODOS.md 不存在且用户需要创建（询问）
+
+**永不停止：**
+- 未提交的更改（始终包含）
+- 版本号选择（自动选 MICRO 或 PATCH）
+- CHANGELOG 内容（自动从 diff 生成）
+- 提交消息确认（自动提交）
+- 多文件变更集（自动拆分为可 bisect 的提交）
+- TODOS.md 完成项检测（自动标记）
+- 可自动修复的审查发现（死代码、N+1、过期注释 — 自动修复）
+
+---
+
+## Step 0: 检测基础分支
+
+确定此 PR 的目标分支。在后续所有步骤中使用检测结果作为"基础分支"。
+
+1. 检查是否已存在 PR：
+   ```bash
+   gh pr view --json baseRefName -q .baseRefName
+   ```
+   如果成功，使用输出的分支名。
+
+2. 如果没有 PR（命令失败），检测仓库默认分支：
+   ```bash
+   gh repo view --json defaultBranchRef -q .defaultBranchRef.name
+   ```
+
+3. 如果都失败，回退到 `main`。
+
+---
+
+## Step 1: 预检
+
+1. 检查当前分支。如果在基础分支上，**中止**："你在基础分支上。请从功能分支发布。"
+
+2. 运行 `git status`（永不使用 `-uall`）。未提交的更改始终包含 — 无需询问。
+
+3. 运行 `git diff <base>...HEAD --stat` 和 `git log <base>..HEAD --oneline` 了解正在发布的内容。
+
+---
+
+## Step 1.5: 分发管道检查
+
+如果 diff 引入了新的独立产物（CLI 二进制、库包、工具）— 不是已有部署的 web 服务 — 验证分发管道是否存在。
+
+1. 检查 diff 是否添加了新的 `cmd/` 目录、`main.go` 或 `bin/` 入口：
+   ```bash
+   git diff origin/<base> --name-only | grep -E '(cmd/.*/main\.go|bin/|Cargo\.toml|setup\.py|package\.json)' | head -5
+   ```
+
+2. 如果检测到新产物，检查发布工作流：
+   ```bash
+   ls .github/workflows/ 2>/dev/null | grep -iE 'release|publish|dist'
+   ```
+
+3. **如果没有发布管道且检测到新产物：** 询问用户：
+   - A) 现在添加发布工作流
+   - B) 推迟 — 添加到 TODOS.md
+   - C) 不需要 — 这是内部/web-only
+
+4. 如果已有发布管道或未检测到新产物：静默继续。
+
+---
+
+## Step 2: 合并基础分支（测试前）
+
+获取并合并基础分支到功能分支，这样测试运行在合并状态上：
+
+```bash
+git fetch origin <base> && git merge origin/<base> --no-edit
+```
+
+**如果有合并冲突：** 尝试自动解决简单冲突（VERSION、schema.rb、CHANGELOG 排序）。如果冲突复杂或模糊，**停止**并展示。
+
+**如果已是最新：** 静默继续。
+
+---
+
+## Step 2.5: 测试框架检测
+
+检测项目的测试框架和运行时：
+
+```bash
+# 检测运行时
+[ -f Gemfile ] && echo "RUNTIME:ruby"
+[ -f package.json ] && echo "RUNTIME:node"
+[ -f requirements.txt ] || [ -f pyproject.toml ] && echo "RUNTIME:python"
+[ -f go.mod ] && echo "RUNTIME:go"
+[ -f Cargo.toml ] && echo "RUNTIME:rust"
+# 检测测试基础设施
+ls jest.config.* vitest.config.* playwright.config.* .rspec pytest.ini pyproject.toml 2>/dev/null
+ls -d test/ tests/ spec/ __tests__/ cypress/ e2e/ 2>/dev/null
+```
+
+**如果检测到测试框架：** 记录框架名称，读取 2-3 个现有测试文件学习约定。继续。
+**如果没有检测到测试框架：** 询问用户是否需要设置，或跳过测试。
+
+---
+
+## Step 3: 运行测试（在合并后的代码上）
+
+读取项目的 `package.json` 或等效文件，确定测试命令。运行测试套件。
+
+**如果测试失败：** 不要立即停止。应用测试失败分类：
+
+### 测试失败所有权分类
+
+对每个失败的测试：
+
+1. **获取分支上更改的文件：** `git diff origin/<base>...HEAD --name-only`
+
+2. **分类失败：**
+   - **本分支导致** — 如果：失败的测试文件本身在此分支上被修改，或测试输出引用了分支上更改的代码。
+   - **可能预存** — 如果：测试文件和它测试的代码都没有在此分支上修改，且失败与分支更改无关。
+   - **模糊时默认为本分支导致。** 阻止开发者比放过破损测试更安全。
+
+3. **本分支失败 → 停止。** 展示失败，不继续。
+4. **预存失败 → 询问用户：**
+   - A) 现在调查并修复
+   - B) 添加为 P0 TODO — 此分支合并后修复
+   - C) 跳过 — 我知道这个问题，继续发布
+
+**所有失败处理后：** 如果仍有本分支失败未修复，**停止**。如果所有失败都是预存且已处理，继续。
+
+**如果全部通过：** 静默继续 — 简要记录计数。
+
+---
+
+## Step 3.4: 测试覆盖审计
+
+100% 覆盖是目标 — 每个未测试的路径都是 bug 隐藏的地方。
+
+1. **追踪每个更改的代码路径**，使用 `git diff origin/<base>...HEAD`：
+   - 读取每个更改文件的完整内容（不仅仅是 diff 块）
+   - 追踪数据流：输入从哪来？什么转换它？去哪里？每步什么会出错？
+   - 为每个更改文件画 ASCII 图：每个函数/方法、每个条件分支、每个错误路径
+
+2. **映射用户流和交互边界情况：**
+   - 用户执行什么操作序列触及此代码？
+   - 双击/快速重提交、中途导航离开、过期数据提交等
+
+3. **检查每个分支是否有对应测试**
+
+4. **输出 ASCII 覆盖图：**
+```
+CODE PATH COVERAGE
+===========================
+[+] src/services/billing.ts
+    ├── processPayment()
+    │   ├── [★★★ TESTED] Happy path — billing.test.ts:42
+    │   └── [GAP] Network timeout — NO TEST
+─────────────────────────────────
+COVERAGE: X/Y paths tested (Z%)
+```
+
+5. **为未覆盖路径生成测试：**
+   - 优先错误处理和边界情况
+   - 读取现有测试文件匹配约定
+   - 运行每个测试，通过 → 提交，失败 → 修复一次，仍失败 → 回滚
+
+**REGRESSION RULE（强制）：** 识别到回归时（diff 破坏了之前工作的功能），立即写回归测试。无询问。无跳过。
+
+---
+
+## Step 3.5: 预合并审查
+
+审查 diff 寻找测试无法捕获的结构性问题。
+
+1. 运行 `git diff origin/<base>` 获取完整 diff。
+
+2. 两遍审查：
+
+### Pass 1 (CRITICAL):
+
+**SQL & 数据安全：**
+- 任何 `${}`/`#{}`/`+ variable` 在 SQL 字符串中 → **CRITICAL**（必须用参数化查询）
+- `ORDER BY`/`GROUP BY` 接受用户输入但无白名单验证 → **CRITICAL**
+- 缺少 `.permit()` 或等效的 mass-assignment 保护 → CRITICAL
+- 裸 SQL 在循环内（N+1 查询模式）→ HIGH
+
+**LLM 输出信任边界：**
+- LLM 输出直接渲染为 HTML 无转义 → **CRITICAL**
+- LLM 输出用于 SQL/命令/文件路径无消毒 → **CRITICAL**
+- LLM 输出作为代码执行（eval、exec、Function()）→ **CRITICAL**
+
+**竞态条件：**
+- 先读后写无锁（check-then-act）→ HIGH
+- 共享可变状态跨异步边界 → HIGH
+- 非幂等操作无去重保护 → MEDIUM
+
+**枚举完整性：**
+- switch/case 缺少分支 → MEDIUM
+- 新枚举值添加但处理代码未更新 → HIGH
+
+### Pass 2 (INFORMATIONAL):
+
+- 条件副作用（if 中有写操作，else 中没有 → 状态不一致风险）
+- 魔法数字/字符串（应提取为常量）
+- 死代码（未使用的导入、不可达分支）
+- 测试缺口（新功能无对应测试）
+- 性能/打包（大依赖导入、图片未优化）
+- 错误吞噬（空 catch 块、无日志的错误处理）
+- 类型安全（any 类型、类型断言绕过检查）
+
+3. **分类每个发现为 AUTO-FIX 或 ASK：**
+
+**Fix-First 启发式：**
+
+AUTO-FIX（直接修，不问）：
+- 死代码删除
+- 缺少的错误日志
+- N+1 查询优化
+- 过期注释更新
+- 导入排序/未使用导入
+- 类型注解补充
+
+ASK（需要用户判断）：
+- SQL 注入修复（可能改变查询语义）
+- 架构级重构
+- 删除看起来有用的代码
+- 性能优化可能改变行为
+- 安全策略变更
+
+4. **Auto-fix 所有 AUTO-FIX 项。** 每个修复输出一行：
+   `[AUTO-FIXED] [file:line] Problem → what you did`
+
+5. **如果有 ASK 项，** 一次性呈现给用户：
+   - 列出每项：编号、严重性、问题、建议修复
+   - 每项选项：A) 修复  B) 跳过
+   - 总体 RECOMMENDATION
+
+6. **所有修复后（auto + 用户批准的）：**
+   - 如果有任何修复：提交修复文件 `git add <files> && git commit -m "fix: pre-landing review fixes"`，然后**停止**并告诉用户重新运行 `/ship` 重新测试。
+   - 如果没有修复：继续到 Step 4。
+
+7. 输出总结：`Pre-Landing Review: N issues — M auto-fixed, K asked (J fixed, L skipped)`
+
+---
+
+## Step 4: 版本号变更（自动决定）
+
+1. 读取当前 `VERSION` 文件（4 位格式：`MAJOR.MINOR.PATCH.MICRO`）
+
+2. **基于 diff 自动决定变更级别：**
+   - 计算更改行数 `git diff origin/<base>...HEAD --stat | tail -1`
+   - **MICRO**（第 4 位）：< 50 行更改，小调整、拼写、配置
+   - **PATCH**（第 3 位）：50+ 行更改，bug 修复、中小功能
+   - **MINOR**（第 2 位）：**询问用户** — 仅重大功能或重要架构更改
+   - **MAJOR**（第 1 位）：**询问用户** — 仅里程碑或破坏性更改
+
+3. 计算新版本（升位重置右侧为 0）。写入 VERSION 文件。
+
+---
+
+## Step 5: CHANGELOG（自动生成）
+
+1. 读取 `CHANGELOG.md` 头部了解格式。
+
+2. 从**分支上所有提交**自动生成条目：
+   - 使用 `git log <base>..HEAD --oneline` 和 `git diff <base>...HEAD`
+   - 分类为：`### Added`、`### Changed`、`### Fixed`、`### Removed`
+   - 写简洁描述性条目
+   - 格式：`## [X.Y.Z.W] - YYYY-MM-DD`
+
+**不要询问用户描述更改。** 从 diff 和提交历史推断。
+
+---
+
+## Step 5.5: TODOS.md（自动更新）
+
+交叉引用 TODOS.md 和正在发布的更改。自动标记完成项；仅在文件缺失或混乱时询问。
+
+1. **检查 TODOS.md 是否存在。** 不存在则询问是否创建。
+2. **检查结构。** 混乱则询问是否重组。
+3. **检测完成的 TODO：** 自动匹配 diff 和提交历史，保守标记。
+4. **移动完成项**到 `## Completed` 区域。
+
+---
+
+## Step 6: 提交（可 bisect 的块）
+
+**目标：** 创建与 `git bisect` 兼容的小型逻辑提交。
+
+1. 分析 diff，将更改分组为逻辑提交。
+
+2. **提交顺序**（先早后晚）：
+   - **基础设施：** 迁移、配置更改、路由
+   - **模型和服务：** 新模型、服务（带测试）
+   - **控制器和视图：** 控制器、视图、组件（带测试）
+   - **VERSION + CHANGELOG + TODOS.md：** 始终在最后提交
+
+3. **拆分规则：**
+   - 模型和它的测试在同一提交
+   - 小 diff（< 50 行，< 4 文件）可以单个提交
+
+4. **每个提交必须独立有效** — 无破坏的导入，无引用不存在的代码。
+
+5. 最后提交包含 Co-Author 标记。
+
+---
+
+## Step 6.5: 验证门
+
+**铁律：没有新鲜验证证据不声称完成。**
+
+推送前，如果 Step 4-6 期间代码发生更改，重新验证：
+
+1. **测试验证：** 如果 Step 3 测试运行后有任何代码更改（审查修复等），重新运行测试套件。
+2. **构建验证：** 如果项目有构建步骤，运行它。
+
+3. **理性化预防：**
+   - "应该能用了" → 运行它。
+   - "我很有信心" → 信心不是证据。
+   - "我之前测试过了" → 代码之后改了。重新测试。
+
+**如果测试在这里失败：** 停止。不推送。修复后返回 Step 3。
+
+---
+
+## Step 7: 推送
+
+```bash
+git push -u origin <branch-name>
+```
+
+---
+
+## Step 8: 创建 PR
+
+使用 `gh` 创建 Pull Request：
+
+```bash
+gh pr create --base <base> --title "<type>: <summary>" --body "$(cat <<'EOF'
+## Summary
+<CHANGELOG 条目>
+
+## Test Coverage
+<Step 3.4 覆盖图 或 "All new code paths have test coverage.">
+
+## Pre-Landing Review
+<Step 3.5 审查结果 或 "No issues found.">
+
+## TODOS
+<完成项列表 或 "No TODO items completed in this PR.">
+
+## Test plan
+- [x] All tests pass
+EOF
+)"
+```
+
+**输出 PR URL** — 然后进入 Step 8.5。
+
+---
+
+## Step 8.5: 自动调用 /document-release
+
+PR 创建后，自动同步项目文档：
+
+1. 读取所有 .md 文件，交叉引用 diff
+2. 更新任何漂移的内容（README、ARCHITECTURE、CONTRIBUTING 等）
+3. 如果有文档更新，提交并推送：
+   ```bash
+   git add <doc-files> && git commit -m "docs: sync documentation with shipped changes" && git push
+   ```
+4. 如果无需更新："Documentation is current — no updates needed."
+
+---
+
+## 重要规则
+
+- **永不跳过测试。** 测试失败则停止。
+- **永不跳过预合并审查。**
+- **永不 force push。** 只使用常规 `git push`。
+- **永不询问琐碎确认**（如"准备推送？""创建 PR？"）。
+- **始终使用 4 位版本格式。**
+- **CHANGELOG 日期格式：** `YYYY-MM-DD`
+- **拆分提交以支持 bisect** — 每个提交 = 一个逻辑更改。
+- **TODOS.md 完成检测必须保守。**
+- **没有新鲜验证证据不推送。**
+- **目标：用户说 `/ship`，下一个看到的就是审查结果 + PR URL + 自动同步的文档。**
