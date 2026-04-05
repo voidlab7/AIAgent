@@ -1,0 +1,66 @@
+=====================================
+  Suno AI 生成 Prompt - 完整配置
+  歌曲名称: 无声的浪 (Silent Wave)
+  风格: 民谣抒情 / Indie Folk Ballad
+=====================================
+
+【Style of Music 填写内容】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Chinese folk ballad, indie pop, slow tempo, emotional, intimate, acoustic guitar fingerpicking, soft piano, light strings, cello swells in chorus, subtle ocean wave ambience, female vocals, soft breathy voice, melancholic nostalgia, gentle remembrance, healing warmth, 70 BPM, Mandarin Chinese, D major, reverb spacious atmosphere, emotional arc from quiet to release to peaceful farewell
+
+【Lyrics 粘贴内容】
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[Verse 1]
+阳光曾吻过你微笑的侧脸，
+像初夏微风，轻抚过湖面。
+我们都以为，那会是永远，
+却忽略你眼中，渐暗的光线。
+
+[Pre-Chorus]
+你说你只是有点累，世界有点灰，
+我们笑着说，明天会明媚。
+却没有人听见，心在呐喊海水在涨潮，
+沉默的轰鸣，淹没了所有呼号。
+
+[Chorus]
+你化作一场，无声的浪，
+退回深海，留我在岸上张望。
+我恨这晴空，依旧那么广，
+恨自己没能读懂，你最后的篇章。
+
+[Verse 2]
+翻看旧照片，你站在我身边，
+眼底有星光，闪烁却遥远。
+如今才读懂，那抹疏离的甜，
+是你在告别，用尽气力的表演。
+
+[Bridge]
+如果歌声能逆流时光，
+如果拥抱能筑起堤防。
+我多想穿越人海，带你翻过那堵墙。
+
+[Chorus]
+你化作一场，无声的浪，
+退回深海，留我在岸上永远张望。
+我学着适应，这空旷的晴朗，
+带着你的影子，走过人潮熙攘。
+
+[Outro]
+灯塔的光，我会为你续上，
+照我前行，也照见你曾受的伤。
+最深重的纪念，是连你的痛也一起珍藏，
+然后更勇敢热爱，这人生的无常。
+浪花散了，海记得你来时的方向。
+我会常常，听见那无声的轰响。
+晚安强悍的，我的姑娘。
+在另一个地方，愿你拥有纯粹的晨光。
+
+=====================================
+  使用说明:
+  1. 打开 https://suno.com (或 suno-ai.com.cn 国内版)
+  2. 点击 Create → Custom Mode
+  3. 将上方 Style 内容复制到 Style of Music 输入框
+  4. 将 Lyrics 内容复制到 Lyrics 输入框
+  5. 点击 Generate 生成
+=====================================
