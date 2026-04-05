@@ -1,0 +1,40 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e11]: psychology_alt
+        - generic [ref=e12]:
+          - heading "猫咪MBTI · 深度版" [level=1] [ref=e13]
+          - paragraph [ref=e14]: PawMBTI · 爪印人格
+      - generic [ref=e15]:
+        - paragraph [ref=e16]:
+          - text: 深度解读你家猫咪的
+          - text: 隐藏人格
+        - paragraph [ref=e17]: 回答 12 道深度行为分析题，ABCD 四选一加权计分，精准解锁四维性格密码。
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e22]: analytics
+            - generic [ref=e23]:
+              - generic [ref=e24]: 加权算法
+              - generic [ref=e25]: 12 题四维分析
+          - generic [ref=e26]:
+            - generic [ref=e28]: bar_chart
+            - generic [ref=e29]:
+              - generic [ref=e30]: 详细报告
+              - generic [ref=e31]: 维度比例可视化
+        - generic [ref=e32]:
+          - generic [ref=e34]: share
+          - generic [ref=e35]: 结果可分享生成专属猫格卡片
+      - generic [ref=e37]:
+        - generic [ref=e38]: pets
+        - generic [ref=e39]: 累计 6 次测评
+      - generic [ref=e40]:
+        - button "开始深度测试 arrow_forward" [ref=e41] [cursor=pointer]:
+          - text: 开始深度测试
+          - generic [ref=e42]: arrow_forward
+        - paragraph [ref=e43]:
+          - generic [ref=e44]: key
+          - text: 需要邀请码 ·
+          - button "输入邀请码" [ref=e45] [cursor=pointer]
+  - generic: v1.10.0

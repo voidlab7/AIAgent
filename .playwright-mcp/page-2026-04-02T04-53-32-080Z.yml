@@ -1,0 +1,41 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e8]:
+        - button "返回" [ref=e9] [cursor=pointer]:
+          - generic [ref=e10]: arrow_back
+        - generic [ref=e11]:
+          - generic [ref=e12]: QUESTION 01 OF 12
+          - generic [ref=e13]: 8% COMPLETE
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - paragraph [ref=e19]: 你收到一个 offer：薪资翻倍，但要去一个完全不认识人的城市。你？
+          - generic [ref=e20]:
+            - button "1 🚀 去！人生就是要折腾" [ref=e21] [cursor=pointer]:
+              - generic [ref=e22]:
+                - generic [ref=e23]: "1"
+                - generic [ref=e24]:
+                  - generic [ref=e25]: 🚀
+                  - generic [ref=e26]: 去！人生就是要折腾
+            - button "2 🤔 先去考察一下，看看适不适合" [ref=e27] [cursor=pointer]:
+              - generic [ref=e28]:
+                - generic [ref=e29]: "2"
+                - generic [ref=e30]:
+                  - generic [ref=e31]: 🤔
+                  - generic [ref=e32]: 先去考察一下，看看适不适合
+            - button "3 😰 有点慌，但钱真的很香…" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]:
+                - generic [ref=e35]: "3"
+                - generic [ref=e36]:
+                  - generic [ref=e37]: 😰
+                  - generic [ref=e38]: 有点慌，但钱真的很香…
+            - button "4 🙅 不去，朋友和家人比钱重要" [ref=e39] [cursor=pointer]:
+              - generic [ref=e40]:
+                - generic [ref=e41]: "4"
+                - generic [ref=e42]:
+                  - generic [ref=e43]: 🙅
+                  - generic [ref=e44]: 不去，朋友和家人比钱重要
+        - generic [ref=e45]:
+          - button "← 上一题" [disabled] [ref=e46]
+          - button "下一题 →" [disabled] [ref=e47]
+  - generic: v1.10.0

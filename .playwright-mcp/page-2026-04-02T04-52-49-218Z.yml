@@ -1,0 +1,40 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e11]: child_care
+        - generic [ref=e12]:
+          - heading "宝贝趣味画像" [level=1] [ref=e13]
+          - paragraph [ref=e14]: BabyMBTI · 趣味行为观察
+      - generic [ref=e15]:
+        - paragraph [ref=e16]:
+          - text: 1分钟观察宝宝的
+          - text: 行为小特点
+        - paragraph [ref=e17]: 回答 10 道关于宝宝日常行为的趣味场景题，AB 二选一，看看你家宝宝是哪种气质类型~
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e22]: timer
+            - generic [ref=e23]:
+              - generic [ref=e24]: 仅需 1 分钟
+              - generic [ref=e25]: 10 道趣味场景题
+          - generic [ref=e26]:
+            - generic [ref=e28]: child_care
+            - generic [ref=e29]:
+              - generic [ref=e30]: 4 种宝宝类型
+              - generic [ref=e31]: 小太阳·小狮子·小熊·小猫头鹰
+        - generic [ref=e32]:
+          - generic [ref=e34]: share
+          - generic [ref=e35]: 结果可分享生成专属宝宝画像卡
+      - generic [ref=e37]:
+        - generic [ref=e38]: pets
+        - generic [ref=e39]: 累计 6 次测评
+      - generic [ref=e40]:
+        - button "开始观察 arrow_forward" [ref=e41] [cursor=pointer]:
+          - text: 开始观察
+          - generic [ref=e42]: arrow_forward
+        - paragraph [ref=e43]:
+          - generic [ref=e44]: key
+          - text: 需要邀请码 ·
+          - button "输入邀请码" [ref=e45] [cursor=pointer]
+  - generic: v1.10.0

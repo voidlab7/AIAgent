@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-AIAgent — 一个人的 AI 工作团队。An AI-powered personal workspace covering knowledge accumulation, content production, product incubation, and engineering efficiency. Python backend with a React sub-project (`products/web_site/`).
+AIAgent — 一个人的 AI 工作团队。An AI-powered personal workspace covering knowledge accumulation, content production, product incubation, and engineering efficiency. Python backend with a React sub-project (`web_site/pawmbti/`).
 
 ## Build & Run Commands
 
@@ -27,9 +27,9 @@ black .                                       # Format code
 mypy . --ignore-missing-imports               # Type check
 ```
 
-### Frontend (products/web_site/pawmbti/)
+### Frontend (web_site/pawmbti/)
 ```bash
-cd products/web_site/pawmbti && npm run dev      # Dev server
+cd web_site/pawmbti && npm run dev      # Dev server
 npm run build                           # Production build → dist/
 npm run lint                            # Lint
 ```
@@ -53,11 +53,15 @@ AIAgent/
 │   ├── formatter/      #   6. Formatting for platforms (not yet implemented)
 │   └── publisher/      #   7. Publishing (Xiaohongshu via MCP)
 ├── products/           # 🚀 Product Incubation
-│   ├── ideas/          #   Product idea pool (design docs, brainstorms)
-│   └── web_site/       #   Web products (independent git repo)
-└── common/             # 🔧 Shared Infrastructure
-    ├── config.py       #   Central config (paths, API keys, account profile)
-    └── database.py     #   SQLite wrapper (global singleton `db`)
+│   └── ideas/          #   Product idea pool (design docs, brainstorms)
+├── web_site/           # 🌐 Web Products (independent git repo)
+│   └── pawmbti/        #   PawMBTI cat personality test (live at microlab.top)
+├── common/             # 🔧 Shared Infrastructure
+│   ├── config.py       #   Central config (paths, API keys, account profile)
+│   └── database.py     #   SQLite wrapper (global singleton `db`)
+└── docs/               # 📚 Project Docs
+    ├── RELEASE.md      #   Release & deployment guide
+    └── screenshots/    #   Project screenshots
 ```
 
 ### Shared Infrastructure
@@ -70,7 +74,7 @@ AIAgent/
 - **WeChat Publisher MCP** (`wechat-publisher-mcp` npm package) — WeChat publishing (planned)
 - Xiaohongshu publishing uses MCP tools: `check_login_status`, `get_login_qrcode`, `publish_content`, `delete_cookies`
 
-### products/web_site/ Sub-project
+### web_site/ Sub-project
 Independent git repo containing **MicroLab** — interactive personality tests:
 - **PawMBTI**: Cat personality MBTI test (quick 8Q + deep 12Q)
 - **Baby画像**: Baby behavior observation test

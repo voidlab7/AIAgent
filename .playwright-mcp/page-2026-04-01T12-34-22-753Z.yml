@@ -1,0 +1,74 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: menu
+      - generic [ref=e5]: MicroLab
+    - generic [ref=e7]: search
+  - main [ref=e8]:
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - heading "寻找你的 隐藏人格" [level=1] [ref=e11]:
+          - text: 寻找你的
+          - text: 隐藏人格
+        - button "开始探索 arrow_forward" [ref=e12] [cursor=pointer]:
+          - text: 开始探索
+          - generic [ref=e13]: arrow_forward
+      - generic [ref=e15]:
+        - img "Pet Personality Card" [ref=e16]
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - generic [ref=e19]: ENTP-CAT
+            - generic [ref=e20]: 好奇心爆炸
+          - paragraph [ref=e21]: 猫咪MBTI测试
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - heading "热度精选" [level=2] [ref=e24]
+        - generic [ref=e25]: 查看全部
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - img "City Landscape" [ref=e28]
+          - generic [ref=e29]:
+            - generic [ref=e30]: TOP PICK
+            - heading "天选城市" [level=3] [ref=e31]
+            - paragraph [ref=e32]: 哪座城市的灵魂与你最契合？
+        - generic [ref=e33]:
+          - generic [ref=e35]: icecream
+          - generic [ref=e36]:
+            - heading "甜点人格" [level=3] [ref=e37]
+            - paragraph [ref=e38]: 你的内心是布丁还是黑巧？
+        - generic [ref=e39]:
+          - generic [ref=e41]: palette
+          - generic [ref=e42]:
+            - heading "压力色彩学" [level=3] [ref=e43]
+            - paragraph [ref=e44]: 潜意识里的压力颜色
+    - generic [ref=e45]:
+      - heading "实验室回声" [level=2] [ref=e46]
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e51]: 林克_07
+          - paragraph [ref=e52]: “准得有点可怕，竟然测出来我是肉桂卷人格...”
+        - generic [ref=e53]:
+          - generic [ref=e56]: SunnyCat
+          - paragraph [ref=e57]: “界面太好看了，每天都要来测一下新的题。”
+        - generic [ref=e58]:
+          - generic [ref=e61]: 好奇心观测员
+          - paragraph [ref=e62]: “和朋友对比了结果，简直是一模一样！”
+    - generic [ref=e63]:
+      - generic [ref=e65]: mail
+      - heading "不定期接收惊喜测试" [level=2] [ref=e66]
+      - paragraph [ref=e67]: 订阅我们的灵感简报，发现未曾察觉的自我。
+      - generic [ref=e68]:
+        - textbox "输入你的邮箱" [ref=e69]
+        - button "即刻订阅" [ref=e70] [cursor=pointer]
+  - contentinfo [ref=e71]:
+    - generic [ref=e72]: MicroLab
+    - navigation [ref=e73]:
+      - link "Explore" [ref=e74] [cursor=pointer]:
+        - /url: "#"
+      - link "Updates" [ref=e75] [cursor=pointer]:
+        - /url: "#"
+      - link "Contact" [ref=e76] [cursor=pointer]:
+        - /url: "#"
+      - link "Privacy" [ref=e77] [cursor=pointer]:
+        - /url: "#"
+    - paragraph [ref=e78]: © 2024 MicroLab. Built for the curious.

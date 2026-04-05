@@ -1,0 +1,57 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - generic:
+        - img
+      - generic [ref=e7]:
+        - generic [ref=e9]:
+          - img [ref=e11]
+          - generic [ref=e13]:
+            - heading "天选城市" [level=1] [ref=e14]
+            - paragraph [ref=e15]: 找到你的灵魂归宿
+        - generic [ref=e16]:
+          - paragraph [ref=e18]: 12 道趣味问题
+          - heading "回答几个小问题， 发现与你灵魂契合的城市" [level=2] [ref=e19]:
+            - text: 回答几个小问题，
+            - text: 发现与你灵魂契合的城市
+          - paragraph [ref=e20]: 从生活节奏、饮食偏好、社交风格等 5 个维度，在 15 座城市中找到最适合你的那一座。
+          - button "开始测试 →" [ref=e21] [cursor=pointer]
+          - paragraph [ref=e22]:
+            - text: 🔑 需要邀请码才能开始 —
+            - button "输入邀请码" [ref=e23] [cursor=pointer]
+          - paragraph [ref=e24]: 约 2 分钟 · 结果可生成专属海报
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]:
+              - generic [ref=e29]: layers
+              - generic [ref=e30]:
+                - generic [ref=e31]: 5大维度
+                - generic [ref=e32]: 生活·饮食·社交·节奏·环境
+            - generic [ref=e33]:
+              - generic [ref=e35]: location_city
+              - generic [ref=e36]:
+                - generic [ref=e37]: 15 座城市
+                - generic [ref=e38]: 精准匹配你的灵魂归宿
+          - generic [ref=e39]:
+            - generic [ref=e41]: photo_camera
+            - generic [ref=e42]: 专属海报结果一键生成分享
+        - generic [ref=e43]:
+          - paragraph [ref=e44]: 覆盖城市
+          - generic [ref=e45]:
+            - generic [ref=e46]: 北京
+            - generic [ref=e47]: 上海
+            - generic [ref=e48]: 深圳
+            - generic [ref=e49]: 成都
+            - generic [ref=e50]: 杭州
+            - generic [ref=e51]: 西安
+            - generic [ref=e52]: 重庆
+            - generic [ref=e53]: 厦门
+            - generic [ref=e54]: 青岛
+            - generic [ref=e55]: 苏州
+            - generic [ref=e56]: 长沙
+            - generic [ref=e57]: 广州
+            - generic [ref=e58]: 南京
+            - generic [ref=e59]: 大连
+            - generic [ref=e60]: 武汉
+        - paragraph [ref=e62]: 天选城市 · microlab.top
+  - generic: v1.10.0

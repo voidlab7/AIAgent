@@ -1,0 +1,34 @@
+{
+  "date": "2026-04-01",
+  "window": "7d",
+  "metrics": {
+    "commits": 3,
+    "contributors": 1,
+    "prs_merged": 0,
+    "insertions": 18096,
+    "deletions": 133,
+    "net_loc": 17963,
+    "test_loc": 0,
+    "test_ratio": 0,
+    "active_days": 2,
+    "sessions": 2,
+    "deep_sessions": 0,
+    "avg_session_minutes": 5,
+    "loc_per_session_hour": 9000,
+    "feat_pct": 0,
+    "fix_pct": 0,
+    "peak_hour": 17
+  },
+  "authors": {
+    "voidlab7": {
+      "commits": 3,
+      "insertions": 18096,
+      "deletions": 133,
+      "test_ratio": 0,
+      "top_area": ".codebuddy/"
+    }
+  },
+  "version_range": ["v0.1.0", "v0.1.0"],
+  "streak_days": 2,
+  "tweetable": "Week of Mar 25: 3 commits, 18k LOC, 0% tests, 0 PRs, peak: 17h | Streak: 2d"
+}

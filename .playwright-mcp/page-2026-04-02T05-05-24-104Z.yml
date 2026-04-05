@@ -1,0 +1,129 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - banner [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e10]: menu
+          - generic [ref=e11]: MicroLab
+        - generic [ref=e13]: search
+      - main [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - generic [ref=e17]:
+              - generic [ref=e18]: science
+              - generic [ref=e19]: 趣味测试站
+            - heading "寻找你的 隐藏人格" [level=1] [ref=e20]:
+              - text: 寻找你的
+              - text: 隐藏人格
+            - paragraph [ref=e21]:
+              - text: 用好玩的测试，发现你
+              - text: 和你宠物的真实性格
+            - link "开始探索 arrow_forward" [ref=e22] [cursor=pointer]:
+              - /url: /pawmbti/quick
+              - text: 开始探索
+              - generic [ref=e23]: arrow_forward
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - img [ref=e28]
+              - generic [ref=e36]: ENTP
+            - generic [ref=e38]:
+              - generic [ref=e39]:
+                - generic [ref=e41]: pets
+                - generic [ref=e42]: 宠物MBTI · 测试结果
+              - generic [ref=e43]:
+                - generic [ref=e44]: 夜猫型探险家
+                - generic [ref=e45]: The Curious Night Owl
+              - generic [ref=e46]:
+                - generic [ref=e47]: 好奇心
+                - generic [ref=e48]: 话唠猫
+                - generic [ref=e49]: 夜行侠
+              - generic [ref=e50]:
+                - generic [ref=e52]: E
+                - generic [ref=e56]: "N"
+                - generic [ref=e60]: T
+                - generic [ref=e64]: P
+        - region "热度精选" [ref=e67]:
+          - generic [ref=e69]: 热度精选
+          - generic [ref=e70]:
+            - generic [ref=e74]:
+              - generic [ref=e75]:
+                - generic [ref=e76]: TOP PICK
+                - generic [ref=e77]:
+                  - img [ref=e78]
+                  - img [ref=e84]
+                  - img [ref=e90]
+              - generic [ref=e96]:
+                - heading "宠物MBTI测试站" [level=3] [ref=e97]
+                - paragraph [ref=e98]: 猫咪性格测试 · 速测版 & 深度版
+                - generic [ref=e99]:
+                  - link "速测版 8题 · 1分钟" [ref=e100] [cursor=pointer]:
+                    - /url: /pawmbti/quick
+                    - generic [ref=e101]: 速测版
+                    - generic [ref=e102]: 8题 · 1分钟
+                  - link "深度版 12题 · 加权分析" [ref=e103] [cursor=pointer]:
+                    - /url: /pawmbti/pro
+                    - generic [ref=e104]: 深度版
+                    - generic [ref=e105]: 12题 · 加权分析
+            - generic [ref=e106]:
+              - link "新上线 child_care 宝贝趣味画像 10题 · 行为观察" [ref=e107] [cursor=pointer]:
+                - /url: /baby
+                - generic [ref=e112]:
+                  - generic [ref=e113]: 新上线
+                  - generic [ref=e114]:
+                    - generic [ref=e116]: child_care
+                    - generic [ref=e117]: 宝贝趣味画像
+                    - generic [ref=e118]: 10题 · 行为观察
+              - link "新上线 location_city 天选城市 12题 · 发现你的天选之城" [ref=e119] [cursor=pointer]:
+                - /url: /city-match
+                - img [ref=e120]
+                - generic [ref=e122]:
+                  - generic [ref=e123]: 新上线
+                  - generic [ref=e124]:
+                    - generic [ref=e126]: location_city
+                    - generic [ref=e127]: 天选城市
+                    - generic [ref=e128]: 12题 · 发现你的天选之城
+        - region "实验室回声" [ref=e129]:
+          - generic [ref=e130]:
+            - text: 实验室回声
+            - paragraph [ref=e131]: 他们测完之后说了什么
+          - generic [ref=e132]:
+            - generic [ref=e134]:
+              - generic [ref=e135]: 橘
+              - generic [ref=e136]:
+                - generic [ref=e137]: 橘猫打工人
+                - paragraph [ref=e138]: "\"测出来是\"慵懒派夜猫\"，感觉被一只橘猫说中了我的人生。\""
+            - generic [ref=e140]:
+              - generic [ref=e141]: 猫
+              - generic [ref=e142]:
+                - generic [ref=e143]: 养猫五年老粉
+                - paragraph [ref=e144]: "\"给我猫测了深度版，准到可怕。它就是ENTP无疑了。\""
+            - generic [ref=e146]:
+              - generic [ref=e147]: M
+              - generic [ref=e148]:
+                - generic [ref=e149]: Momo铲屎官
+                - paragraph [ref=e150]: "\"结果卡做得太好看了，发朋友圈后三个闺蜜都来测。\""
+        - region "关注小红书" [ref=e151]:
+          - link "关注小红书 新测试首发 @MicroLab 实验室 · 每周新测试 · 用户故事 arrow_forward" [ref=e152] [cursor=pointer]:
+            - /url: https://www.xiaohongshu.com/user/profile/657cfb48000000001902d7f7
+            - generic [ref=e153]:
+              - img [ref=e155]
+              - generic [ref=e157]:
+                - generic [ref=e158]:
+                  - heading "关注小红书" [level=2] [ref=e159]
+                  - generic [ref=e160]: 新测试首发
+                - paragraph [ref=e161]: "@MicroLab 实验室 · 每周新测试 · 用户故事"
+              - generic [ref=e163]: arrow_forward
+        - contentinfo [ref=e164]:
+          - generic [ref=e165]:
+            - generic [ref=e167]: science
+            - generic [ref=e168]: MicroLab
+          - paragraph [ref=e169]: 有趣的灵魂测试站 · 用好玩的测试发现隐藏人格
+          - navigation "Footer 导航" [ref=e170]:
+            - link "宠物MBTI" [ref=e171] [cursor=pointer]:
+              - /url: /pawmbti/quick
+            - link "宝贝画像" [ref=e172] [cursor=pointer]:
+              - /url: /baby
+            - link "天选城市" [ref=e173] [cursor=pointer]:
+              - /url: /city-match
+          - generic [ref=e175]: © 2025 MicroLab
+  - generic: v1.10.0

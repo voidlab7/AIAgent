@@ -29,17 +29,21 @@ AIAgent/
 │   └── publisher/               #   7. 内容发布
 │
 ├── products/                    # 🚀 产品孵化
-│   ├── ideas/                   #   产品创意池
-│   └── web_site/                #   Web 产品（独立 Git 仓库）
+│   └── ideas/                   #   产品创意池（含设计文档）
+│
+├── web_site/                    # 🌐 Web 产品（独立 Git 仓库）
+│   └── pawmbti/                 #   PawMBTI 宠物性格测试（已上线）
 │
 ├── common/                      # 🔧 公共模块
 │   ├── config.py                #   统一配置管理
 │   └── database.py              #   SQLite 数据库封装
 │
 ├── workflows/                   # 工作流编排
+├── docs/                        # 📚 项目文档
+│   ├── RELEASE.md               #   发版与部署指南
+│   └── screenshots/             #   项目截图
 ├── .codebuddy/                  # AI 助手（Skills / Rules / Memory）
 │
-├── main.py                      # CLI 入口
 ├── requirements.txt             # Python 依赖
 └── .env.example                 # 环境变量模板
 ```
@@ -72,27 +76,51 @@ AI 学习助手产出的所有知识的统一存储。
 
 ### 🚀 [产品孵化](./products/README.md)（products/）
 
-产品创意池 + 已上线的 Web 产品。当前已上线：**PawMBTI 宠物性格测试**（microlab.top）。
+产品创意池 + 已上线的 Web 产品。
+
+| 产品 | 状态 | 说明 |
+|------|------|------|
+| PawMBTI 宠物性格测试 | ✅ 已上线 | microlab.top，React + TypeScript |
+| 天选城市测试 | ✅ 已上线 | 集成于 PawMBTI 站点 |
+| 宝宝性格测试 | 🚧 开发中 | 设计文档完成，待实现 |
+| 黑暗人格测试 | 🚧 开发中 | 设计文档完成，待实现 |
+
+Web 产品代码在 `web_site/`（独立 Git 仓库），设计文档在 `products/ideas/`。
 
 ## 快速开始
 
-### 安装依赖
+### 安装 Python 依赖
 ```bash
 cd AIAgent
 pip install -r requirements.txt
 cp .env.example .env  # 配置 API Keys
 ```
 
-### 运行
+### 运行各模块
 ```bash
-python main.py status                    # 查看模块状态
-python main.py hotspot                   # 运行热点监控
-python main.py trigger "分析趣味测试热点"  # 关键词触发分析
-python main.py funtest --demo            # 趣味测试分析器
+# 热点监控
+python -m pipeline.hotspot.scheduler
+
+# 选题分析（趣味测试方向）
+python -m pipeline.topic.fun_test_workflow
+
+# 内容发布（小红书）
+python -m pipeline.publisher.main
 ```
 
+### Web 产品（PawMBTI）
+```bash
+cd web_site/pawmbti
+npm install
+npm run dev    # 本地开发
+npm run build  # 构建生产版本
+```
+
+### 发版与部署
+参考 [docs/RELEASE.md](./docs/RELEASE.md)
+
 ### 配置
-所有配置集中在 `common/config.py`，包括 API Keys、平台账号、内容偏好、发布计划。
+所有 Python 配置集中在 `common/config.py`，包括 API Keys、平台账号、内容偏好、发布计划。
 
 ## 技术栈
 

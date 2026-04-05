@@ -2,38 +2,12 @@
 description: SCP 上传文件到服务器。当用户需要将本地文件通过 SCP 上传到 microlab.top 服务器时使用此 Skill。触发关键词包括：上传到服务器、scp、传到服务器、部署脚本到服务器、同步到服务器、发到服务器。
 alwaysApply: false
 enabled: true
-updatedAt: 2026-03-23T15:19:34.512Z
+updatedAt: 2026-04-01T16:25:00.000Z
 provider: 
 ---
 
 # SCP 上传到服务器
 
-通过 SCP + 密码方式将本地文件上传到远程服务器。
+本规则为触发入口。详细的执行流程、命令格式、错误处理见 `.codebuddy/skills/scp-upload.md`。
 
-## 服务器配置
-
-| 配置项 | 值 |
-|--------|-----|
-| 服务器地址 | `microlab.top` |
-| 登录用户 | `root` |
-| 认证方式 | 密码认证（使用 sshpass） |
-| root 密码 | `$SERVER_PASSWORD` |
-
-## 常用目标路径
-
-| 用途 | 服务器目标路径 |
-|------|--------------| 
-| 部署/运维脚本 | `/root/scripts/` |
-| 前端静态文件 | `/var/www/pawmbti/` |
-| 后端计数服务 | `/var/www/pawmbti-server/` |
-| Nginx 配置 | `/etc/nginx/conf.d/` |
-
-## 执行规则
-
-1. **先检查 sshpass 是否安装**：`which sshpass`（未安装则 `brew install hudochenkov/sshpass/sshpass`）
-2. **SCP 上传命令格式**：
-   - 单文件：`sshpass -p '$SERVER_PASSWORD' scp -o StrictHostKeyChecking=no <本地路径> root@microlab.top:<远程路径>`
-   - 目录：`sshpass -p '$SERVER_PASSWORD' scp -o StrictHostKeyChecking=no -r <本地目录> root@microlab.top:<远程路径>`
-3. **上传后操作**（通过 SSH）：`sshpass -p '$SERVER_PASSWORD' ssh -o StrictHostKeyChecking=no root@microlab.top "<命令>"`
-4. **所有 scp/ssh 命令的 `requires_approval` 必须设为 `true`**
-5. **自动推断目标路径**：脚本 → `/root/scripts/`，前端 → `/var/www/pawmbti/`，服务端 → `/var/www/pawmbti-server/`
+激活此规则后，读取 Skill 文件并按其流程执行。

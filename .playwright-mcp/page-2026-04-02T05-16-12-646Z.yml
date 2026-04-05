@@ -1,0 +1,119 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button "重新测试" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]: arrow_back
+        - generic [ref=e10]: 天选城市
+      - generic [ref=e12]:
+        - img [ref=e13]
+        - generic [ref=e18]:
+          - generic [ref=e19]: verified
+          - generic [ref=e20]: Verified City
+        - generic [ref=e21]:
+          - paragraph [ref=e22]: Destined City
+          - heading "成都" [level=1] [ref=e23]
+          - paragraph [ref=e24]: 来了就不想走的宽窄巷
+        - generic [ref=e25]:
+          - generic [ref=e26]: 契合
+          - generic [ref=e27]: "94"
+          - generic [ref=e28]: "%"
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - paragraph [ref=e32]: Core Profile
+            - heading "为什么是成都" [level=2] [ref=e33]
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - generic [ref=e37]: check_circle
+              - paragraph [ref=e38]: 你偏爱慢节奏的生活方式
+            - generic [ref=e39]:
+              - generic [ref=e41]: check_circle
+              - paragraph [ref=e42]: 你重视美食和烟火人情气息
+            - generic [ref=e43]:
+              - generic [ref=e45]: check_circle
+              - paragraph [ref=e46]: 你希望在有温度的城市里生根发芽
+          - paragraph [ref=e47]: 成都是一座来了就不想走的城市，慢节奏、高幸福指数。
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - paragraph [ref=e50]: Dimensions
+            - heading "你的维度画像" [level=2] [ref=e51]
+          - generic [ref=e52]:
+            - generic [ref=e54]:
+              - generic [ref=e55]: 冒险指数
+              - generic [ref=e56]: 45%
+            - generic [ref=e59]:
+              - generic [ref=e60]: 归属感
+              - generic [ref=e61]: 72%
+            - generic [ref=e64]:
+              - generic [ref=e65]: 城市气质
+              - generic [ref=e66]: 68%
+            - generic [ref=e69]:
+              - generic [ref=e70]: 生活节奏
+              - generic [ref=e71]: 38%
+            - generic [ref=e74]:
+              - generic [ref=e75]: 理想主义
+              - generic [ref=e76]: 82%
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - paragraph [ref=e80]: Soul Question
+            - heading "灵魂拷问" [level=2] [ref=e81]
+          - paragraph [ref=e82]: 周末你更倾向于？
+          - generic [ref=e83]:
+            - button "🍵 茶馆打牌晒太阳" [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]: 🍵
+              - text: 茶馆打牌晒太阳
+            - button "🏃 健身房打卡" [ref=e86] [cursor=pointer]:
+              - generic [ref=e87]: 🏃
+              - text: 健身房打卡
+            - button "🍜 排队网红餐厅" [ref=e88] [cursor=pointer]:
+              - generic [ref=e89]: 🍜
+              - text: 排队网红餐厅
+            - button "🎭 看展览开脑洞" [ref=e90] [cursor=pointer]:
+              - generic [ref=e91]: 🎭
+              - text: 看展览开脑洞
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - paragraph [ref=e94]: Also Consider
+            - heading "其他候选城市" [level=2] [ref=e95]
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - generic [ref=e98]:
+                - generic [ref=e99]: 🌿
+                - generic [ref=e100]: 82%
+              - heading "杭州" [level=4] [ref=e101]
+              - paragraph [ref=e102]: 诗意栖居的数字游民
+            - generic [ref=e103]:
+              - generic [ref=e104]:
+                - generic [ref=e105]: 🌊
+                - generic [ref=e106]: 75%
+              - heading "厦门" [level=4] [ref=e107]
+              - paragraph [ref=e108]: 文艺青年的海边慢时光
+        - generic [ref=e109]:
+          - button "生成专属海报 photo_camera" [ref=e110] [cursor=pointer]:
+            - text: 生成专属海报
+            - generic [ref=e111]: photo_camera
+          - button "重新测试" [ref=e112] [cursor=pointer]
+          - paragraph [ref=e113]: 长按保存图片 · 分享到朋友圈
+      - generic [ref=e117]:
+        - generic [ref=e118]: 天选城市 · MicroLab
+        - generic [ref=e119]: 我的人格与这座城市最契合
+        - generic [ref=e120]: 🏮
+        - generic [ref=e121]: 成都
+        - generic [ref=e122]: 来了就不想走的宽窄巷
+        - generic [ref=e123]:
+          - generic [ref=e124]: 城市契合度
+          - generic [ref=e125]: 94%
+        - generic [ref=e126]:
+          - generic [ref=e127]: 为什么是你
+          - generic [ref=e128]:
+            - generic [ref=e129]: ✓
+            - text: 你偏爱慢节奏的生活方式
+          - generic [ref=e130]:
+            - generic [ref=e131]: ✓
+            - text: 你重视美食和烟火人情气息
+          - generic [ref=e132]:
+            - generic [ref=e133]: ✓
+            - text: 你希望在有温度的城市里生根发芽
+        - generic [ref=e135]: microlab.top/city-match
+  - generic: v1.10.0

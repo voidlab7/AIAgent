@@ -1,0 +1,50 @@
+- generic [ref=e4]:
+  - main [ref=e5]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - generic [ref=e11]: pets
+        - generic [ref=e12]:
+          - heading "猫咪MBTI · 速测版" [level=1] [ref=e13]
+          - paragraph [ref=e14]: PawMBTI · 爪印人格
+      - generic [ref=e15]:
+        - paragraph [ref=e16]:
+          - text: 快速发现你家猫咪的
+          - text: 隐藏性格
+        - paragraph [ref=e17]: 回答 8 道关于猫咪日常习惯的趣味问题，AB 二选一，解锁你家猫咪的 MBTI 性格密码。
+      - generic [ref=e18]:
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e22]: timer
+            - generic [ref=e23]:
+              - generic [ref=e24]: 仅需 1 分钟
+              - generic [ref=e25]: 8 道精选题
+          - generic [ref=e26]:
+            - generic [ref=e28]: psychology
+            - generic [ref=e29]:
+              - generic [ref=e30]: 16 种猫格
+              - generic [ref=e31]: MBTI 性格类型
+        - generic [ref=e32]:
+          - generic [ref=e34]: share
+          - generic [ref=e35]: 结果可分享生成专属猫格卡片
+      - generic [ref=e37]:
+        - generic [ref=e38]: pets
+        - generic [ref=e39]: 累计 6 次测评
+      - generic [ref=e40]:
+        - button "开始测试 arrow_forward" [ref=e41] [cursor=pointer]:
+          - text: 开始测试
+          - generic [ref=e42]: arrow_forward
+        - paragraph [ref=e43]:
+          - generic [ref=e44]: key
+          - text: 需要邀请码 ·
+          - button "输入邀请码" [ref=e45] [cursor=pointer]
+      - generic [ref=e48]:
+        - generic [ref=e50]:
+          - text: 🔑
+          - heading "内测体验" [level=2] [ref=e51]
+          - paragraph [ref=e52]: 当前为内测阶段，输入邀请码即可开始 ✨
+        - generic [ref=e53]:
+          - textbox "请输入邀请码" [active] [ref=e54]
+          - button "进入体验 →" [ref=e55] [cursor=pointer]
+          - button "暂不体验" [ref=e56] [cursor=pointer]
+        - paragraph [ref=e57]: 没有邀请码？关注我们获取 💌
+  - generic: v1.10.0

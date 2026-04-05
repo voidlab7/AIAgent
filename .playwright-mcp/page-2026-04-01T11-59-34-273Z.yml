@@ -1,0 +1,88 @@
+- generic [ref=e3]:
+  - main [ref=e4]:
+    - generic [ref=e5]:
+      - generic:
+        - generic: 🧪
+        - generic: ✨
+        - generic: 🎲
+      - generic [ref=e6]:
+        - generic:
+          - generic:
+            - generic:
+              - img "MicroLab Logo"
+        - heading "MicroLab" [level=1] [ref=e7]
+        - paragraph [ref=e8]: 有趣的灵魂测试站
+        - paragraph [ref=e9]: 用好玩的测试，发现你和ta的隐藏人格 ✨
+        - generic [ref=e10]:
+          - generic [ref=e11]:
+            - generic [ref=e12]: 🎯
+            - generic [ref=e13]: 有趣好玩
+          - generic [ref=e14]:
+            - generic [ref=e15]: 📊
+            - generic [ref=e16]: 科学分析
+          - generic [ref=e17]:
+            - generic [ref=e18]: 📸
+            - generic [ref=e19]: 一键分享
+          - generic [ref=e20]:
+            - generic [ref=e21]: 🔒
+            - generic [ref=e22]: 隐私安全
+        - generic [ref=e25]: 🎮 测试阵地
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e30]:
+              - generic [ref=e32]: 🐱
+              - generic [ref=e33]:
+                - heading "宠物MBTI测试站" [level=3] [ref=e34]
+                - paragraph [ref=e35]: 猫咪性格测试 · 速测版 & 深度版
+            - generic [ref=e36]:
+              - generic [ref=e37]: 🐾 宠物
+              - generic [ref=e38]: 🔥 最受欢迎
+            - generic [ref=e39]:
+              - link "⚡ 速测版 8题 · 1分钟" [ref=e40] [cursor=pointer]:
+                - /url: /pawmbti/quick
+                - generic [ref=e41]: ⚡
+                - generic [ref=e42]: 速测版
+                - generic [ref=e43]: 8题 · 1分钟
+              - link "🔮 深度版 12题 · 加权分析" [ref=e44] [cursor=pointer]:
+                - /url: /pawmbti/pro
+                - generic [ref=e45]: 🔮
+                - generic [ref=e46]: 深度版
+                - generic [ref=e47]: 12题 · 加权分析
+          - generic [ref=e48]:
+            - generic [ref=e50]:
+              - generic [ref=e52]: 👶
+              - generic [ref=e53]:
+                - heading "宝贝趣味画像" [level=3] [ref=e54]
+                - paragraph [ref=e55]: 行为观察测试 · 4种宝宝类型
+            - generic [ref=e56]:
+              - generic [ref=e57]: 🆕 新上线
+              - generic [ref=e58]: 👶 母婴
+            - link "🎨 趣味画像 10题 · 行为观察" [ref=e60] [cursor=pointer]:
+              - /url: /baby
+              - generic [ref=e61]: 🎨
+              - generic [ref=e62]: 趣味画像
+              - generic [ref=e63]: 10题 · 行为观察
+          - generic [ref=e64]:
+            - generic [ref=e66]:
+              - generic [ref=e68]: 🏙️
+              - generic [ref=e69]:
+                - heading "天选城市" [level=3] [ref=e70]
+                - paragraph [ref=e71]: 趣味城市测试 · 发现你的天选之城
+            - generic [ref=e72]:
+              - generic [ref=e73]: 🆕 新上线
+              - generic [ref=e74]: 🏙️ 城市
+            - link "🏙️ 开始测试 12题 · 城市匹配" [ref=e76] [cursor=pointer]:
+              - /url: /city-match
+              - generic [ref=e77]: 🏙️
+              - generic [ref=e78]: 开始测试
+              - generic [ref=e79]: 12题 · 城市匹配
+          - generic [ref=e80]:
+            - generic [ref=e81]: 🚀
+            - paragraph [ref=e82]: 更多趣味测试，敬请期待...
+            - paragraph [ref=e83]: 恋爱语言 · 颜色测性格 · 家庭匹配
+        - generic [ref=e84]:
+          - generic [ref=e85]: 🎯 全站累计
+          - generic [ref=e86]: ...
+          - generic [ref=e87]: 次测评 ✨
+      - paragraph [ref=e89]: MicroLab · 有趣的灵魂测试站
+  - generic: v1.10.0
